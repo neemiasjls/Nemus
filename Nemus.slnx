@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nemus.Domain/Nemus.Domain.csproj" />
+    <Project Path="src/Nemus.Infrastructure/Nemus.Infrastructure.csproj" />
+    <Project Path="src/Nemus.Api/Nemus.Api.csproj" />
+    <Project Path="src/Nemus.MigrationTool/Nemus.MigrationTool.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Nemus.Tests/Nemus.Tests.csproj" />
+  </Folder>
+</Solution>

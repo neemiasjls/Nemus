@@ -1,0 +1,23 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+TestResults/
+artifacts/
+
+# Segredos. Nenhum destes existe hoje, mas a fase 2 traz configuracao de API
+# e conexao real - e segredo commitado nao se apaga, so se rotaciona.
+.env
+.env.*
+*.env
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
+*.pfx
+*.p12
+*.key
+*.pem
+.pgpass

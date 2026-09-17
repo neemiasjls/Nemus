@@ -1,0 +1,27 @@
+# Infraestrutura da API no Render, versionada junto do codigo.
+#
+# O banco NAO esta aqui de proposito: ele vive no Supabase e nao e gerido
+# por este arquivo. O que o Render precisa saber e so como alcanca-lo, e
+# isso vai por variavel de ambiente marcada como sync:false - ou seja, o
+# valor e digitado no painel e nunca entra no repositorio.
+
+services:
+  - type: web
+    name: nemus-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      # String de conexao do Supabase. Use SSL Mode=VerifyFull.
+      - key: NEMUS_DB
+        sync: false
+
+      # Token de acesso a API. Gere com: openssl rand -base64 48
+      - key: NEMUS_BOOTSTRAP_TOKEN
+        sync: false
+
+      # Origem do frontend na Cloudflare. Sem isto o navegador bloqueia.
+      - key: NEMUS_CORS_ORIGINS
+        sync: false

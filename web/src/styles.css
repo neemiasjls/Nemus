@@ -1,0 +1,2815 @@
+/*
+ * Nemus - sistema visual.
+ *
+ * O CONCEITO continua sendo o livro-razao: serifa nos numeros, algarismo
+ * tabular, verde de credito e oxblood de debito, fio duplo sob o titulo, e as
+ * partidas mostradas como razao em T. O que muda nesta versao e a EXECUCAO: a
+ * anterior tinha o conceito e nenhuma estrutura - quatro blocos de formulario
+ * lado a lado, sem hierarquia, sem navegacao.
+ *
+ * Agora:
+ *   casca       navegacao lateral fixa, conteudo em coluna medida
+ *   hierarquia  titulo de pagina > indicadores > paineis > detalhe
+ *   paineis     superficie propria com sombra minima, para agrupar sem gritar
+ *   formularios recolhidos ate serem pedidos, com rotulo de verdade
+ *
+ * TEMAS. Tres estados: claro, escuro e "sistema". A escolha vira data-theme no
+ * elemento raiz; sem atributo, prefers-color-scheme decide. O bloco escuro
+ * aparece duas vezes abaixo - uma para a escolha explicita, outra para o
+ * sistema - porque CSS puro nao tem como reaproveitar um bloco de variaveis.
+ * Mudou uma cor escura? Mude nos dois.
+ *
+ * SEM FONTE EXTERNA E SEM BIBLIOTECA. A CSP nao tem font-src e so aceita
+ * script do proprio dominio. As pilhas caem em Georgia/Segoe no Windows e
+ * Iowan/SF no Mac. Icones e graficos sao SVG escrito a mao.
+ *
+ * SEM ESTILO INLINE. Nenhum style="..." no JSX: toda geometria dinamica e
+ * atributo SVG (width, strokeDasharray), e toda cor e classe daqui.
+ */
+
+:root {
+  --serif: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+  --radius: 10px;
+  --radius-m: 7px;
+  --sidebar-width: 244px;
+
+  /* ---- claro: papel ---------------------------------------------------- */
+  --bg: #f3f0e8;
+  --surface: #fcfbf7;
+  --surface-2: #eeeadf;
+  --sidebar-bg: #ebe6d9;
+  --ink: #1c1914;
+  --ink-2: #58513f;
+  --ink-3: #807760;
+  --line: #e1dacb;
+  --line-strong: #c8bea6;
+
+  --credit: #1c6a45;
+  --credit-soft: rgba(28, 106, 69, 0.1);
+  --debit: #a3372e;
+  --debit-soft: rgba(163, 55, 46, 0.09);
+  --accent: #936d22;
+  --accent-soft: rgba(147, 109, 34, 0.12);
+
+  --shadow: 0 1px 2px rgba(45, 36, 18, 0.05), 0 6px 18px -10px rgba(45, 36, 18, 0.16);
+
+  --slice-0: #1c6a45;
+  --slice-1: #936d22;
+  --slice-2: #3d5d8a;
+  --slice-3: #a3372e;
+  --slice-4: #6a5a90;
+  --slice-5: #4b7b76;
+
+  color-scheme: light;
+}
+
+/* ---- escuro: tinta, por escolha explicita ------------------------------- */
+:root[data-theme="dark"] {
+  --bg: #11110f;
+  --surface: #1a1916;
+  --surface-2: #23211c;
+  --sidebar-bg: #0c0c0a;
+  --ink: #ede8dc;
+  --ink-2: #aca592;
+  --ink-3: #837d6e;
+  --line: #2a2822;
+  --line-strong: #3e3b31;
+
+  --credit: #74c292;
+  --credit-soft: rgba(116, 194, 146, 0.12);
+  --debit: #e9867b;
+  --debit-soft: rgba(233, 134, 123, 0.12);
+  --accent: #d8b262;
+  --accent-soft: rgba(216, 178, 98, 0.13);
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 26px -14px rgba(0, 0, 0, 0.6);
+
+  --slice-0: #74c292;
+  --slice-1: #d8b262;
+  --slice-2: #82a3d2;
+  --slice-3: #e9867b;
+  --slice-4: #ab99d6;
+  --slice-5: #82b8b2;
+
+  color-scheme: dark;
+}
+
+/* ---- escuro: seguindo o sistema (manter igual ao bloco acima) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11110f;
+    --surface: #1a1916;
+    --surface-2: #23211c;
+    --sidebar-bg: #0c0c0a;
+    --ink: #ede8dc;
+    --ink-2: #aca592;
+    --ink-3: #837d6e;
+    --line: #2a2822;
+    --line-strong: #3e3b31;
+
+    --credit: #74c292;
+    --credit-soft: rgba(116, 194, 146, 0.12);
+    --debit: #e9867b;
+    --debit-soft: rgba(233, 134, 123, 0.12);
+    --accent: #d8b262;
+    --accent-soft: rgba(216, 178, 98, 0.13);
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 26px -14px rgba(0, 0, 0, 0.6);
+
+    --slice-0: #74c292;
+    --slice-1: #d8b262;
+    --slice-2: #82a3d2;
+    --slice-3: #e9867b;
+    --slice-4: #ab99d6;
+    --slice-5: #82b8b2;
+
+    color-scheme: dark;
+  }
+}
+
+/* ======================================================================= */
+/* base                                                                     */
+/* ======================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14.5px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body,
+.sidebar,
+.panel,
+.metric,
+.onboarding-step {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* So para leitor de tela. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Coluna de valor tem que alinhar: algarismo tabular em toda parte. */
+.amount,
+.metric-value,
+.date,
+.leg-amount,
+.bar-amount,
+.legend-amount,
+.tree-amount,
+.donut-total,
+table {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.credit {
+  color: var(--credit);
+}
+.debit {
+  color: var(--debit);
+}
+.neutral {
+  color: var(--ink);
+}
+
+/* ---- botoes ------------------------------------------------------------ */
+/*
+ * :where() zera a especificidade das regras base. Assim qualquer classe de
+ * componente (.secondary, .link, .sign-out...) ganha sem briga e sem !important.
+ */
+
+:where(button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-m);
+  background: var(--ink);
+  color: var(--bg);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+}
+
+:where(button:hover:not(:disabled)) {
+  background: color-mix(in srgb, var(--ink) 84%, var(--credit));
+}
+
+:where(button:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+:where(button, a, input, select):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.secondary {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--ink-3);
+}
+
+.link {
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.link:hover:not(:disabled) {
+  background: none;
+  color: var(--ink);
+}
+
+.danger {
+  padding: 6px 12px;
+  border-color: color-mix(in srgb, var(--debit) 45%, transparent);
+  background: transparent;
+  color: var(--debit);
+  font-size: 0.78rem;
+}
+.danger:hover:not(:disabled) {
+  background: var(--debit-soft);
+}
+
+.wide {
+  width: 100%;
+  padding: 11px;
+}
+
+/* ---- campos ------------------------------------------------------------ */
+
+:where(input, select) {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-m);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+:where(input, select):focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+input::placeholder {
+  color: var(--ink-3);
+}
+
+/* ======================================================================= */
+/* casca                                                                    */
+/* ======================================================================= */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 22px 14px 18px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 2px 10px 0;
+}
+
+.wordmark {
+  font-family: var(--serif);
+  font-size: 1.06rem;
+  font-weight: 600;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.logo {
+  flex: none;
+}
+.logo-bg {
+  fill: var(--ink);
+}
+.logo-letter {
+  stroke: var(--bg);
+}
+.logo-rule {
+  stroke: var(--credit);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: var(--radius-m);
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.nav a:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.nav a.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+/* Filete de credito na borda da barra, marcando onde voce esta. */
+.nav a.active::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  left: -14px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--credit);
+}
+
+.nav .icon {
+  flex: none;
+  opacity: 0.85;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding: 14px 2px 0;
+  border-top: 1px solid var(--line);
+}
+
+/* Quem entrou, e o atalho para trocar a senha. */
+.who {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+  border-radius: var(--radius-m);
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.who:hover,
+.who.active {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.who > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.seal {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid;
+  border-radius: var(--radius-m);
+  font-size: 0.74rem;
+  line-height: 1.35;
+  cursor: help;
+}
+.seal-ok {
+  color: var(--credit);
+  border-color: color-mix(in srgb, var(--credit) 32%, transparent);
+  background: var(--credit-soft);
+}
+.seal-bad {
+  color: var(--debit);
+  border-color: color-mix(in srgb, var(--debit) 40%, transparent);
+  background: var(--debit-soft);
+}
+.seal-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+.seal-text {
+  display: flex;
+  flex-direction: column;
+}
+.seal-text strong {
+  font-weight: 650;
+}
+.seal-text span {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-switcher {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--surface-2);
+}
+.theme-switcher button {
+  width: 31px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink-3);
+}
+.theme-switcher button:hover:not(:disabled) {
+  background: transparent;
+  color: var(--ink);
+}
+.theme-switcher button.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+
+.sign-out {
+  padding: 6px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.sign-out:hover:not(:disabled) {
+  background: transparent;
+  color: var(--debit);
+}
+
+.content {
+  min-width: 0;
+  padding: 36px 44px 64px;
+}
+
+.content-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 16px;
+  border: 1px solid color-mix(in srgb, var(--debit) 40%, transparent);
+  border-radius: var(--radius-m);
+  background: var(--debit-soft);
+  color: var(--debit);
+  font-size: 0.86rem;
+}
+
+/* ======================================================================= */
+/* estrutura de pagina                                                      */
+/* ======================================================================= */
+
+/* Fio duplo sob o titulo: o recurso de livro contabil, numa linha de CSS. */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 3px double var(--line-strong);
+}
+
+.page-title {
+  font-family: var(--serif);
+  font-size: clamp(1.65rem, 2.6vw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+}
+
+.page-subtitle {
+  margin-top: 5px;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+.page-actions {
+  display: flex;
+  flex: none;
+  gap: 10px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel-header h2 {
+  color: var(--ink-2);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.hint {
+  color: var(--ink-3);
+  font-size: 0.76rem;
+}
+
+.panel-form {
+  border-top: 3px solid var(--accent);
+  animation: appear 0.18s ease-out;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.grid-aside {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+}
+
+.grid-import {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: start;
+  gap: 22px;
+}
+
+/* ---- indicadores ------------------------------------------------------- */
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metric {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 18px 20px 17px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.metric.featured {
+  border-color: color-mix(in srgb, var(--credit) 30%, var(--line));
+  background: linear-gradient(155deg, var(--surface) 35%, var(--credit-soft) 160%);
+}
+
+.metric-label {
+  color: var(--ink-3);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.metric-value {
+  margin-top: 4px;
+  overflow: hidden;
+  font-family: var(--serif);
+  font-size: clamp(1.1rem, 12cqi, 1.62rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * O numero acompanha a largura do proprio cartao (cqi), nao a da janela. Com
+ * quatro colunas numa tela de 1280px o cartao tem uns 180px uteis, e o valor
+ * em tamanho fixo nao cabia: o patrimonio liquido - justo o numero mais
+ * importante da tela - aparecia cortado. Valor longo, de milhao para cima,
+ * desce mais um degrau; a classe vem do componente, sem estilo inline.
+ */
+.metric.featured .metric-value {
+  font-size: clamp(1.2rem, 13cqi, 1.95rem);
+}
+.metric-value.long {
+  font-size: clamp(1rem, 10cqi, 1.5rem);
+}
+.metric.featured .metric-value.long {
+  font-size: clamp(1.05rem, 10.5cqi, 1.7rem);
+}
+
+.metric-detail {
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-size: 0.76rem;
+}
+
+/* ---- estados vazios e textos de apoio ----------------------------------- */
+
+.empty {
+  padding: 8px 0;
+  color: var(--ink-3);
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 38px 20px;
+  text-align: center;
+}
+.empty-title {
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+.empty-text {
+  max-width: 46ch;
+  color: var(--ink-2);
+  font-size: 0.88rem;
+}
+.empty-state button {
+  margin-top: 8px;
+}
+
+.lead {
+  margin-bottom: 14px;
+  color: var(--ink-2);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.note {
+  color: var(--ink-3);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.note-center {
+  text-align: center;
+}
+
+.error {
+  color: var(--debit);
+  font-size: 0.84rem;
+}
+
+code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+}
+
+/* ======================================================================= */
+/* graficos                                                                 */
+/* ======================================================================= */
+
+.chart {
+  margin: 0;
+}
+.chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.gridline {
+  stroke: var(--line);
+  stroke-dasharray: 2 4;
+}
+.axis-base {
+  stroke: var(--line-strong);
+}
+.axis {
+  fill: var(--ink-3);
+  font-family: var(--sans);
+  font-size: 11px;
+}
+.axis-month {
+  fill: var(--ink-2);
+  font-size: 11.5px;
+}
+
+.column-income {
+  fill: var(--credit);
+}
+.column-expense {
+  fill: var(--debit);
+  opacity: 0.86;
+}
+.column-income,
+.column-expense {
+  transition: opacity 0.15s;
+}
+.column-income:hover,
+.column-expense:hover {
+  opacity: 0.65;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 18px;
+  margin-top: 10px;
+  color: var(--ink-2);
+  font-size: 0.76rem;
+}
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.chart-legend span::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.legend-income::before {
+  background: var(--credit);
+}
+.legend-expense::before {
+  background: var(--debit);
+}
+
+/* ---- barras ------------------------------------------------------------ */
+
+.bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bar-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5px;
+  font-size: 0.86rem;
+}
+.bar-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bar-amount {
+  font-family: var(--serif);
+  white-space: nowrap;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bar-track {
+  display: block;
+  flex: 1;
+  height: 7px;
+}
+.bar-bg {
+  fill: var(--surface-2);
+}
+.bar-fill {
+  fill: color-mix(in srgb, var(--debit) 78%, var(--surface));
+}
+.bar-share {
+  width: 34px;
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ---- rosca ------------------------------------------------------------- */
+
+.donut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 26px;
+}
+.donut-figure {
+  position: relative;
+  flex: none;
+  width: 170px;
+  height: 170px;
+}
+.donut-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.donut-track {
+  fill: none;
+  stroke: var(--surface-2);
+  stroke-width: 15;
+}
+.donut-slice {
+  fill: none;
+  stroke-width: 15;
+  transition: opacity 0.15s;
+}
+.donut-slice:hover {
+  opacity: 0.72;
+}
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+}
+.donut-total {
+  font-family: var(--serif);
+  font-size: 1.18rem;
+  font-weight: 600;
+}
+.donut-label {
+  color: var(--ink-3);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.donut-legend {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 210px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.donut-legend li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto 36px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.legend-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.legend-amount {
+  font-family: var(--serif);
+}
+.legend-share {
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.slice-0 { stroke: var(--slice-0); }
+.slice-1 { stroke: var(--slice-1); }
+.slice-2 { stroke: var(--slice-2); }
+.slice-3 { stroke: var(--slice-3); }
+.slice-4 { stroke: var(--slice-4); }
+.slice-5 { stroke: var(--slice-5); }
+.slice-bg-0 { background: var(--slice-0); }
+.slice-bg-1 { background: var(--slice-1); }
+.slice-bg-2 { background: var(--slice-2); }
+.slice-bg-3 { background: var(--slice-3); }
+.slice-bg-4 { background: var(--slice-4); }
+.slice-bg-5 { background: var(--slice-5); }
+
+/* ======================================================================= */
+/* tabelas                                                                  */
+/* ======================================================================= */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+/*
+ * Dentro de painel a tabela "sangra" 12px para cada lado: o texto alinha com
+ * o padding do painel, e a faixa de destaque da linha vai de ponta a ponta.
+ */
+.panel table {
+  width: calc(100% + 24px);
+  margin: 0 -12px;
+}
+
+thead th {
+  padding: 0 12px 9px;
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--ink-3);
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+tbody td,
+tfoot td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+th.amount,
+td.amount {
+  text-align: right;
+}
+
+.amount {
+  font-family: var(--serif);
+  font-size: 0.96rem;
+  white-space: nowrap;
+}
+
+/*
+ * Cabecalho da coluna de valor e rotulo, nao numero. Sem esta regra, .amount
+ * (classe) vence thead th (so elementos) e o cabecalho sai em serifa grande.
+ */
+thead th.amount {
+  font-family: var(--sans);
+  font-size: 0.66rem;
+}
+
+.date {
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.subtext {
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-size: 0.76rem;
+}
+
+/* ---- lancamentos ------------------------------------------------------- */
+
+.transactions-table {
+  table-layout: fixed;
+}
+.transactions-table .col-date {
+  width: 76px;
+}
+.transactions-table .col-actions {
+  width: 46px;
+  text-align: right;
+}
+.transactions-table th.amount {
+  width: 132px;
+}
+
+.row.clickable {
+  cursor: pointer;
+}
+.row.clickable:hover td,
+.row.open td {
+  background: var(--surface-2);
+}
+.row.open td {
+  border-bottom-color: transparent;
+}
+
+.description {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 500;
+}
+.description-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag {
+  flex: none;
+  padding: 1px 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  color: var(--ink-3);
+  font-size: 0.58rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.chip {
+  display: inline-block;
+  max-width: 100%;
+  padding: 3px 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chip.neutral {
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+.uncategorized {
+  color: var(--ink-3);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+/*
+ * Categoria editavel na propria linha. Fechada parece etiqueta; com o cursor
+ * em cima, ganha contorno tracejado - o sinal de "isto se muda aqui" sem
+ * encher a lista de botoes.
+ */
+.chip-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px dashed transparent;
+  font-weight: 500;
+}
+.chip-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.chip-button .icon {
+  opacity: 0.55;
+  transform: rotate(90deg);
+}
+.chip-empty {
+  border-color: var(--line-strong);
+  background: transparent;
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.category-edit {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.category-edit select {
+  width: auto;
+  min-width: 200px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+.picker-error {
+  color: var(--debit);
+  font-size: 0.7rem;
+}
+
+/* Filtro que liga e desliga, com a contagem do que falta fazer. */
+.toggle {
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 0.78rem;
+}
+.toggle:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.toggle.active {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+.toggle .icon {
+  color: var(--accent);
+}
+.subtext .chip {
+  margin-top: 3px;
+  padding: 2px 9px;
+  font-size: 0.72rem;
+}
+
+.icon-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-3);
+}
+.icon-button:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--ink);
+}
+.row-chevron .icon {
+  transition: transform 0.15s;
+}
+.row.open .row-chevron .icon {
+  transform: rotate(90deg);
+}
+
+.detail td {
+  padding: 0 12px 16px;
+  background: var(--surface-2);
+}
+
+.detail-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 11px;
+  color: var(--ink-3);
+  font-size: 0.78rem;
+}
+.detail-footer strong {
+  color: var(--credit);
+  font-family: var(--serif);
+  font-weight: 600;
+}
+
+/* ---- razao em T -------------------------------------------------------- */
+/*
+ * A peca que nenhum outro app de financas mostra: as partidas na forma do
+ * razao. Saiu a esquerda, entrou a direita, fio no meio. Os dois lados sempre
+ * fecham no mesmo total.
+ */
+
+.t-account {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+}
+.t-account-side {
+  min-width: 0;
+  padding: 11px 14px 12px;
+}
+.t-account-side + .t-account-side {
+  border-left: 1px solid var(--line-strong);
+}
+.t-account-title {
+  margin-bottom: 6px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.t-account-side:first-child .t-account-title {
+  color: var(--debit);
+}
+.t-account-side:last-child .t-account-title {
+  color: var(--credit);
+}
+
+.leg {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  font-size: 0.85rem;
+}
+.leg-account {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leg-account em {
+  color: var(--ink-3);
+  font-style: normal;
+}
+.leg-amount {
+  font-family: var(--serif);
+  white-space: nowrap;
+}
+
+/* ---- contas ------------------------------------------------------------ */
+
+.account-name {
+  font-weight: 500;
+}
+.accounts-table tfoot td {
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 0;
+}
+.accounts-table tfoot td:first-child {
+  color: var(--ink-2);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.accounts-table tfoot td.amount {
+  font-size: 1.04rem;
+  font-weight: 600;
+}
+
+/* ---- categorias -------------------------------------------------------- */
+
+.tree {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tree-group {
+  padding: 12px 0 13px;
+  border-bottom: 1px solid var(--line);
+}
+.tree-group:first-child {
+  padding-top: 0;
+}
+.tree-group:last-child {
+  border-bottom: 0;
+}
+.tree-group > ul {
+  margin: 9px 0 0 3px;
+  padding: 0 0 0 14px;
+  border-left: 1px solid var(--line-strong);
+  list-style: none;
+}
+.tree-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+.tree-group > .tree-row .tree-name {
+  font-weight: 600;
+}
+.tree-row.child {
+  padding: 4px 0;
+  color: var(--ink-2);
+}
+.tree-amount {
+  font-family: var(--serif);
+  white-space: nowrap;
+}
+.tree-bar {
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin-top: 8px;
+}
+.tree-credit .bar-fill {
+  fill: var(--credit);
+}
+
+/* ======================================================================= */
+/* orcamento                                                                */
+/* ======================================================================= */
+
+.budget {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  transition: opacity 0.15s;
+}
+.budget.is-loading {
+  opacity: 0.55;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.month-nav-label {
+  min-width: 11.5em;
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  font-weight: 600;
+  text-align: center;
+}
+.icon-only {
+  padding: 7px;
+}
+.flip .icon {
+  transform: scaleX(-1);
+}
+
+/*
+ * Pronto para atribuir: o numero que o metodo manda zerar. A cor diz o estado
+ * - ouro esperando destino, verde fechado, oxblood atribuido alem do que
+ * existe - e o fio da esquerda repete a cor para quem so bate o olho.
+ */
+.ready {
+  --ready-color: var(--line-strong);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+  padding: 24px 28px 24px 32px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.ready::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--ready-color);
+}
+.ready-unassigned {
+  --ready-color: var(--accent);
+  background: linear-gradient(115deg, var(--surface) 40%, var(--accent-soft) 150%);
+}
+.ready-balanced {
+  --ready-color: var(--credit);
+  background: linear-gradient(115deg, var(--surface) 40%, var(--credit-soft) 150%);
+}
+.ready-overassigned {
+  --ready-color: var(--debit);
+  background: linear-gradient(115deg, var(--surface) 40%, var(--debit-soft) 150%);
+}
+
+.ready-label {
+  color: var(--ink-3);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.ready-value {
+  margin-top: 6px;
+  color: var(--ready-color);
+  font-family: var(--serif);
+  font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.ready-text {
+  margin-top: 6px;
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
+
+/*
+ * A conta que prova o metodo, como fita de calculadora: duas parcelas, o fio
+ * duplo do livro e o total. Vertical de proposito - em linha ela quebrava no
+ * meio da conta em tela media.
+ */
+.equation {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: min(100%, 420px);
+  padding: 14px 18px 13px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+.equation-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+}
+/* O rotulo pode quebrar linha; o valor nunca. Com milhoes, e o texto que cede. */
+.equation-label {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  min-width: 0;
+  color: var(--ink-3);
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.equation-op {
+  display: inline-block;
+  flex: none;
+  width: 1.3em;
+  color: var(--ink-3);
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.equation-value {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.equation-total {
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 3px double var(--line-strong);
+}
+.equation-total .equation-label {
+  color: var(--ink-2);
+}
+.equation-total .equation-value {
+  font-size: 1.12rem;
+}
+.equation-check {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+.equation-check.ok {
+  background: var(--credit-soft);
+  color: var(--credit);
+}
+.equation-check.bad {
+  background: var(--debit-soft);
+  color: var(--debit);
+}
+
+.metrics.metrics-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.callout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-m);
+  font-size: 0.86rem;
+}
+.callout p {
+  flex: 1;
+  min-width: 0;
+}
+.callout .icon,
+.callout button {
+  flex: none;
+}
+.callout-warning {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--accent-soft);
+}
+.callout-warning .icon {
+  color: var(--accent);
+}
+.callout-ok {
+  border-color: color-mix(in srgb, var(--credit) 40%, transparent);
+  background: var(--credit-soft);
+}
+.callout-ok .icon {
+  color: var(--credit);
+}
+.callout-debit {
+  border-color: color-mix(in srgb, var(--debit) 40%, transparent);
+  background: var(--debit-soft);
+}
+.callout-debit .icon {
+  color: var(--debit);
+}
+
+/*
+ * Tabela larga dentro de painel: quem rola e o involucro, e e ele que sangra
+ * os 12px para os lados. A margem negativa na propria tabela seria cortada
+ * pelo overflow.
+ */
+.panel .table-scroll {
+  margin: 0 -12px;
+  overflow-x: auto;
+}
+.panel .table-scroll table {
+  width: 100%;
+  margin: 0;
+}
+
+/* Largura no cabecalho, nao em colgroup: assim o celular pode tirar uma coluna inteira. */
+.budget-table {
+  min-width: 600px;
+  table-layout: fixed;
+}
+.budget-table th.col-assigned,
+.budget-table th.col-activity {
+  width: 128px;
+}
+.budget-table th.col-available {
+  width: 184px;
+}
+
+.envelope-group th,
+.envelope-group td {
+  padding-top: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line-strong);
+}
+.envelope-group th {
+  color: var(--ink-2);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.envelope-group .amount {
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
+.budget-table tbody:first-of-type .envelope-group th,
+.budget-table tbody:first-of-type .envelope-group td {
+  padding-top: 10px;
+}
+
+.envelope-row td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.envelope-row:hover td {
+  background: var(--surface-2);
+}
+/* A mesma guia vertical da arvore de categorias. */
+.envelope-row.nested td:first-child {
+  position: relative;
+  padding-left: 30px;
+}
+.envelope-row.nested td:first-child::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 15px;
+  border-left: 1px solid var(--line-strong);
+}
+/* Grupo seguido de envelope solto: o fio de baixo separa do proximo grupo. */
+.budget-table tbody tr:last-child td {
+  border-bottom: 1px solid var(--line);
+}
+
+.envelope-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 500;
+}
+.envelope-name > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.envelope-bar {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: 4px;
+  margin-top: 7px;
+}
+.envelope-bar .bar-fill {
+  fill: var(--credit);
+}
+.envelope-bar.spent .bar-fill {
+  fill: var(--accent);
+}
+.envelope-bar.over .bar-fill {
+  fill: var(--debit);
+}
+
+.activity {
+  color: var(--ink-2);
+}
+
+.available-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.pill {
+  display: inline-block;
+  min-width: 96px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  font-family: var(--serif);
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.pill-credit {
+  background: var(--credit-soft);
+  color: var(--credit);
+}
+.pill-debit {
+  background: var(--debit-soft);
+  color: var(--debit);
+}
+.pill-zero {
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+.cover {
+  color: var(--debit);
+  font-weight: 650;
+}
+.cover:hover:not(:disabled) {
+  color: var(--debit);
+  text-decoration: underline;
+}
+
+/* O valor atribuido parece texto ate a linha receber o cursor: ai vira campo. */
+.assigned-button {
+  justify-content: flex-end;
+  min-width: 104px;
+  margin: -5px -9px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 0.96rem;
+  font-weight: 500;
+}
+.envelope-row:hover .assigned-button {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+.assigned-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+.assigned-empty {
+  color: var(--ink-3);
+}
+.assigned-edit {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+.assigned-input {
+  width: 118px;
+  margin: -5px -9px;
+  padding: 4px 8px;
+  font-family: var(--serif);
+  font-size: 0.96rem;
+  text-align: right;
+}
+.assigned-input[aria-invalid="true"] {
+  border-color: var(--debit);
+  box-shadow: 0 0 0 3px var(--debit-soft);
+}
+.assigned-error {
+  max-width: 160px;
+  margin-top: 6px;
+  color: var(--debit);
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  text-align: right;
+  white-space: normal;
+}
+
+.budget-table tfoot td {
+  border-top: 3px double var(--line-strong);
+  border-bottom: 0;
+  font-weight: 600;
+}
+
+/* ---- parcelamento ------------------------------------------------------- */
+
+.plans-table {
+  min-width: 420px;
+}
+.plans-table .envelope-bar {
+  max-width: 220px;
+}
+.plan-done td {
+  color: var(--ink-3);
+}
+.plan-done .description-text {
+  text-decoration: line-through;
+}
+
+/* Fechamento e vencimento, editados na propria linha da conta. */
+.card-terms {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+.card-terms .field {
+  width: 110px;
+}
+.card-terms .button-row {
+  gap: 8px;
+}
+.card-terms .error {
+  width: 100%;
+}
+
+/* ---- visao geral: envelopes que pedem atencao --------------------------- */
+
+.glance {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.glance-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+.glance-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.glance-amount {
+  font-family: var(--serif);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.glance .envelope-bar {
+  max-width: none;
+  height: 6px;
+}
+.glance .subtext {
+  margin-top: 4px;
+}
+
+/* ======================================================================= */
+/* formularios                                                              */
+/* ======================================================================= */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.field > span:first-child {
+  color: var(--ink-2);
+  font-size: 0.74rem;
+  font-weight: 650;
+}
+.field-wide {
+  grid-column: span 2;
+}
+
+.field-money {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-m);
+  background: var(--bg);
+}
+.field-money:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.field-money .prefix {
+  padding-left: 11px;
+  color: var(--ink-3);
+  font-size: 0.84rem;
+}
+.field-money input {
+  border: 0;
+  background: transparent;
+  font-family: var(--serif);
+  font-size: 1rem;
+}
+.field-money input:focus {
+  box-shadow: none;
+}
+
+.segmented {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--surface-2);
+}
+.segmented button {
+  padding: 7px 16px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+.segmented button:hover:not(:disabled) {
+  background: transparent;
+  color: var(--ink);
+}
+.segmented button.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.segmented button.active.kind-expense {
+  color: var(--debit);
+}
+.segmented button.active.kind-income {
+  color: var(--credit);
+}
+
+.form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+/* Caixa de selecao com a explicacao ao lado, em vez de um rotulo solto. */
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+.check input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+  padding: 0;
+  accent-color: var(--credit);
+}
+.check strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.check .note {
+  display: block;
+  margin-top: 2px;
+}
+
+.form-footer .note {
+  max-width: 62ch;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 9px;
+  min-width: 220px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-m);
+  background: var(--bg);
+  color: var(--ink-3);
+}
+.search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.search input {
+  flex: 1;
+  padding: 9px 0;
+  border: 0;
+  background: transparent;
+}
+.search input:focus {
+  box-shadow: none;
+}
+.account-filter {
+  width: 220px;
+}
+
+/* ======================================================================= */
+/* primeiros passos                                                         */
+/* ======================================================================= */
+
+.onboarding {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.onboarding-number {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent);
+  font-family: var(--serif);
+  font-weight: 600;
+}
+.onboarding-step h3 {
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+.onboarding-step p {
+  flex: 1;
+  color: var(--ink-2);
+  font-size: 0.88rem;
+}
+
+/* ======================================================================= */
+/* importacao                                                               */
+/* ======================================================================= */
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 30px 20px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink-3);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+.dropzone:hover,
+.dropzone.dragging {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink-2);
+}
+.dropzone:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.dropzone.has-file {
+  border-style: solid;
+  border-color: var(--credit);
+  background: var(--credit-soft);
+  color: var(--credit);
+}
+.dropzone-title {
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 600;
+  word-break: break-word;
+}
+.dropzone-text {
+  font-size: 0.78rem;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+}
+.button-row button {
+  flex: 1;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.steps li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 12px;
+  color: var(--ink-2);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  counter-increment: step;
+}
+.steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.steps strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.guarantee {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: var(--radius-m);
+  background: var(--credit-soft);
+  color: var(--credit);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+.guarantee p {
+  color: var(--ink-2);
+}
+.guarantee strong {
+  color: var(--credit);
+}
+
+.preview {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+}
+.preview-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 0.86rem;
+}
+.preview-head strong {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+}
+.preview .warning {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.82rem;
+}
+.panel .preview table {
+  width: 100%;
+  margin: 0;
+}
+.preview td {
+  padding: 8px 16px;
+  font-size: 0.84rem;
+}
+.preview-more {
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 0.78rem;
+}
+
+.result {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--radius-m);
+  background: var(--credit-soft);
+  color: var(--credit);
+}
+.result strong {
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.08rem;
+}
+.result p {
+  margin-top: 3px;
+  color: var(--ink-2);
+  font-size: 0.86rem;
+}
+
+/* ======================================================================= */
+/* entrada                                                                  */
+/* ======================================================================= */
+
+.sign-in {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sign-in-brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 44px 56px 44px 72px;
+  overflow: hidden;
+  border-right: 1px solid var(--line);
+  background: var(--sidebar-bg);
+}
+
+/*
+ * Papel pautado de livro contabil: linhas horizontais a cada 32px e a margem
+ * vermelha vertical. So gradiente e pseudo-elemento - nenhuma imagem.
+ */
+.sign-in-brand::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 31px,
+    var(--line) 31px 32px
+  );
+  opacity: 0.6;
+  pointer-events: none;
+}
+.sign-in-brand::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 44px;
+  width: 1px;
+  background: var(--debit);
+  opacity: 0.3;
+  pointer-events: none;
+}
+.sign-in-brand > * {
+  position: relative;
+  z-index: 1;
+}
+.sign-in-brand .brand {
+  padding: 0;
+}
+
+.sign-in-headline {
+  font-family: var(--serif);
+  font-size: clamp(2.3rem, 4.2vw, 3.4rem);
+  font-weight: 600;
+  line-height: 1.07;
+  letter-spacing: -0.022em;
+}
+.sign-in-headline em {
+  color: var(--credit);
+}
+.sign-in-text {
+  max-width: 42ch;
+  margin-top: 18px;
+  color: var(--ink-2);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.sample-t {
+  max-width: 430px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.sample-t-head,
+.sample-t-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+.sample-t-head {
+  border-bottom: 1px solid var(--line);
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+.sample-t-footer {
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 0.74rem;
+}
+.sample-t-footer strong {
+  font-family: var(--serif);
+}
+.sample-t .t-account {
+  border: 0;
+  border-radius: 0;
+}
+
+.principles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 0;
+  padding: 0;
+  color: var(--ink-2);
+  font-size: 0.82rem;
+  list-style: none;
+}
+.principles li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.principles .icon {
+  color: var(--credit);
+}
+
+.sign-in-side {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.sign-in-theme {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+}
+.sign-in-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(380px, 100%);
+}
+.sign-in-card h2 {
+  margin-bottom: 4px;
+  font-family: var(--serif);
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.sign-in-card .lead {
+  margin: 0;
+}
+
+.mobile-only {
+  display: none;
+}
+
+/* ======================================================================= */
+/* carregamento                                                             */
+/* ======================================================================= */
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.skeleton-block {
+  border-radius: var(--radius);
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 0%,
+    var(--surface) 50%,
+    var(--surface-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+.skeleton-title {
+  width: 36%;
+  height: 48px;
+}
+.skeleton-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.skeleton-row .skeleton-block {
+  height: 106px;
+}
+.skeleton-large {
+  height: 300px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ======================================================================= */
+/* telas menores                                                            */
+/* ======================================================================= */
+
+@media (max-width: 1180px) {
+  .metrics,
+  .skeleton-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1020px) {
+  .grid-2,
+  .grid-aside,
+  .grid-import,
+  .onboarding {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ready {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  /*
+   * A entrada continua em duas metades ate 860px: o painel da marca e a parte
+   * mais distintiva da tela, e dois lados de ~450px cabem. So aperta o
+   * respiro.
+   */
+  .sign-in-brand {
+    padding: 36px 32px 36px 54px;
+  }
+  .sign-in-brand::after {
+    left: 32px;
+  }
+}
+
+@media (max-width: 860px) {
+  .sign-in {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sign-in-brand {
+    display: none;
+  }
+  .mobile-only {
+    display: flex;
+    padding: 0;
+    margin-bottom: 12px;
+  }
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidebar {
+    z-index: 10;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    height: auto;
+    padding: 9px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    padding: 0;
+  }
+  .brand .wordmark {
+    display: none;
+  }
+  .nav {
+    flex: 1;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav a {
+    padding: 8px 10px;
+  }
+  .nav a span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .nav a.active::before {
+    top: auto;
+    right: 8px;
+    bottom: -10px;
+    left: 8px;
+    width: auto;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+  }
+  .sidebar-footer {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .seal {
+    padding: 6px;
+  }
+  .seal-text,
+  .who > span,
+  .sign-out span {
+    display: none;
+  }
+  .who {
+    padding: 6px;
+  }
+  .content {
+    padding: 22px 16px 48px;
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .field-wide {
+    grid-column: auto;
+  }
+  .form-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .account-filter {
+    width: 100%;
+  }
+  .metrics.metrics-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .month-nav-label {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .metrics,
+  .skeleton-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .t-account {
+    grid-template-columns: 1fr;
+  }
+  .t-account-side + .t-account-side {
+    border-top: 1px solid var(--line-strong);
+    border-left: 0;
+  }
+  .ready {
+    padding: 20px 18px 20px 22px;
+  }
+  .callout {
+    flex-wrap: wrap;
+  }
+  /*
+   * No telefone a tabela de envelopes cabe inteira em vez de rolar de lado:
+   * sai a coluna de atividade - o gasto continua na barra de cada envelope - e
+   * "Cobrir" desce para baixo do valor.
+   */
+  .budget-table {
+    min-width: 0;
+  }
+  .budget-table .col-activity,
+  .budget-table .activity {
+    display: none;
+  }
+  .budget-table th.col-assigned {
+    width: 94px;
+  }
+  .budget-table th.col-available {
+    width: 104px;
+  }
+  .envelope-name > span:first-child {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .pill {
+    min-width: 0;
+    padding: 3px 8px;
+  }
+  .available-cell {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .assigned-button {
+    min-width: 0;
+  }
+  .assigned-input {
+    width: 96px;
+  }
+  .envelope-row.nested td:first-child {
+    padding-left: 22px;
+  }
+  .envelope-row.nested td:first-child::before {
+    left: 11px;
+  }
+}
+
+/* --- Relatórios ---------------------------------------------------------
+ *
+ * A tabela de tendência é larga por natureza: doze meses mais total e média
+ * não cabem em tela de celular, e espremer a coluna faria o número quebrar
+ * em duas linhas. Ela rola dentro de .table-scroll, e só ela — a página
+ * nunca rola de lado.
+ */
+.window-picker {
+  display: flex;
+  gap: 6px;
+}
+
+.chip-button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.trend-table {
+  min-width: 640px;
+}
+
+.trend-table th[scope='row'] {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Mês sem gasto na categoria: o travessão fica apagado para que a linha
+ * mostre o padrão de quando a despesa acontece, não só quanto custou. */
+.trend-table td.zero {
+  color: var(--ink-3);
+}
+
+.trend-table td.total {
+  font-weight: 600;
+}
+
+.trend-table tfoot td,
+.trend-table tfoot th {
+  border-top: 1px solid var(--line-strong);
+  font-weight: 600;
+}
+
+/* A linha do gasto sem envelope é a única que pede ação, então é a única
+ * colorida. Se tudo fosse destacado, nada seria. */
+.trend-table tr.loose th[scope='row'] {
+  color: var(--debit);
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.chart-note {
+  margin: 10px 2px 0;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+
+/* --- Gastos fixos -------------------------------------------------------
+ *
+ * A linha do que ainda não veio é a única marcada. Se tudo fosse destacado,
+ * nada seria — e o que se procura nesta tela é justamente o que falta.
+ */
+.recurring-table {
+  min-width: 620px;
+}
+
+.recurring-table th[scope='row'] {
+  font-weight: 500;
+}
+
+.recurring-table tr.pending th[scope='row'] .glance-name {
+  color: var(--ink);
+}
+
+.due-day {
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.status .icon {
+  flex: none;
+}
+
+.status.came {
+  color: var(--ink-2);
+}
+
+.status.waiting {
+  color: var(--debit);
+}
+
+/* Diferença entre o previsto e o que veio: sobe em vermelho, desce em verde.
+ * É o número que explica o mês em que a conta mudou. */
+.status .chip.debit {
+  color: var(--debit);
+  background: var(--debit-soft);
+}
+
+.status .chip.credit {
+  color: var(--credit);
+  background: var(--credit-soft);
+}
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}

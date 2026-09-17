@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Nemus.Domain</RootNamespace>
+    <AssemblyName>Nemus.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <!--
+    O dominio nao tem dependencia nenhuma, de proposito. Nenhum ORM, nenhum
+    driver, nenhum framework. As invariantes do razao nao dependem de
+    infraestrutura para valer.
+  -->
+
+</Project>

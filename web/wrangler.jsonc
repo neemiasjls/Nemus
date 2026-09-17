@@ -1,0 +1,18 @@
+{
+  // Frontend do Nemus na Cloudflare.
+  //
+  // O nome precisa bater com o projeto ja criado (nemus). Se divergir, o
+  // wrangler cria um SEGUNDO site em vez de atualizar este.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nemus",
+  "compatibility_date": "2026-09-10",
+  "observability": { "enabled": true },
+  "assets": {
+    // O build do Vite sai aqui. Servir a raiz do projeto publicaria o
+    // codigo-fonte junto.
+    "directory": "./dist",
+
+    // App de pagina unica: qualquer rota cai no index.html.
+    "not_found_handling": "single-page-application"
+  }
+}

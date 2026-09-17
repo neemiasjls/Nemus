@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+
+    <!--
+      Aplica o tema escolhido antes da primeira pintura. Arquivo proprio, e nao
+      script inline, porque a CSP bloqueia script inline.
+    -->
+    <script src="/theme.js"></script>
+
+    <title>Nemus</title>
+    <meta name="description" content="Razão de partidas dobradas para finanças pessoais." />
+
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f0e8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#11110f" />
+
+    <!--
+      Icone embutido como data URI: a CSP permite img-src data:, e assim nao ha
+      requisicao extra nem binario no repositorio.
+    -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231c1914'/%3E%3Cpath d='M10.5 21.5V10l11 11.5V10' stroke='%23f3f0e8' stroke-width='2.4' fill='none' stroke-linecap='square'/%3E%3Cpath d='M9.5 25.2h13' stroke='%2372c190' stroke-width='1.4'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

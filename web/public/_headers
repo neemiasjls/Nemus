@@ -1,0 +1,13 @@
+# Cabecalhos aplicados pela Cloudflare Pages a tudo que este site serve.
+# Aqui, diferente da API, existe HTML de verdade - entao a CSP importa.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+  # A CSP precisa listar a origem da API, senao o navegador bloqueia o fetch.
+  # Se o servico no Render receber outro nome, e esta linha que muda.
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://nemus-api.onrender.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'

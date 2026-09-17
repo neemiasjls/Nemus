@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Nemus.Infrastructure</RootNamespace>
+    <AssemblyName>Nemus.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql" Version="8.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nemus.Domain\Nemus.Domain.csproj" />
+  </ItemGroup>
+
+  <!--
+    Os testes alcancam o que e internal. As duas pecas mais escorregadias do
+    leitor de OFX - conversao de data com fuso e de valor com separador
+    variavel - merecem teste direto, mas nao merecem virar API publica do
+    assembly so por causa disso.
+  -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Nemus.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <!--
+    As migrations vivem em db/migrations, versionadas como SQL puro, e sao
+    embutidas no assembly para o runner aplicar. Ficam legiveis no repositorio
+    e executaveis por psql sem depender de ferramenta nenhuma.
+
+    Escolha deliberada contra EF Core Migrations: CONSTRAINT TRIGGER diferido,
+    indice unico parcial e FK composta nao sao modelaveis em EF, e sao
+    exatamente as pecas que sustentam as invariantes.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\db\migrations\*.sql"
+                      LogicalName="Nemus.Migrations.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

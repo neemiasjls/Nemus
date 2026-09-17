@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Nemus.MigrationTool</RootNamespace>
+    <AssemblyName>nemus-migrate</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nemus.Infrastructure\Nemus.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

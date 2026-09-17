@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Nemus.Tests</RootNamespace>
+    <AssemblyName>Nemus.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nemus.Domain\Nemus.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Nemus.Infrastructure\Nemus.Infrastructure.csproj" />
+    <!-- A borda HTTP entra na suite por causa do freio de login, que e regra
+         de seguranca e precisa de teste como qualquer outra. -->
+    <ProjectReference Include="..\..\src\Nemus.Api\Nemus.Api.csproj" />
+  </ItemGroup>
+
+  <!--
+    Sem FsCheck e sem Testcontainers, de proposito.
+
+    FsCheck: os testes de propriedade rodam com Random semeado e o seed
+    aparece na mensagem de falha, entao qualquer falha e reproduzivel
+    exatamente. Gerador escrito a mao tambem produz transacoes que sempre
+    fecham em zero por construcao, o que e o gerador que este dominio pede.
+
+    Testcontainers: exige daemon do Docker. Os testes de banco leem a string
+    de conexao de NEMUS_TEST_DB e pulam quando ela nao existe, entao a suite
+    roda em qualquer maquina e o banco entra quando estiver disponivel.
+  -->
+
+</Project>

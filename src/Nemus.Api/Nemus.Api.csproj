@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>Nemus.Api</RootNamespace>
+    <AssemblyName>Nemus.Api</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nemus.Infrastructure\Nemus.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
