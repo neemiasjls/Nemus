@@ -15,7 +15,7 @@ export function ImportPage({ data, reload, navigate }: PageProps) {
         <Panel>
           <EmptyState
             title="Crie uma conta antes."
-            text="O extrato precisa cair em alguma conta do razão."
+            text="O extrato precisa cair em alguma conta do sistema."
             action={<button onClick={() => navigate('accounts')}>Criar conta</button>}
           />
         </Panel>
@@ -43,7 +43,7 @@ export function ImportPage({ data, reload, navigate }: PageProps) {
             </li>
             <li>
               <span>
-                <strong>Escolha a conta</strong> do razão que recebe as linhas.
+                <strong>Escolha a conta</strong> do sistema que recebe as linhas.
               </span>
             </li>
             <li>
@@ -62,7 +62,7 @@ export function ImportPage({ data, reload, navigate }: PageProps) {
             <Icon name="check" size={16} />
             <p>
               <strong>Reimportar nunca duplica.</strong> Cada linha do banco tem identidade
-              própria, e o razão recusa a mesma identidade duas vezes. Baixou períodos que se
+              própria, e o sistema recusa a mesma identidade duas vezes. Baixou períodos que se
               sobrepõem? Pode importar os dois.
             </p>
           </div>
@@ -225,7 +225,7 @@ function ImportForm({ accounts, onImported }: { accounts: Account[]; onImported:
             </strong>
             {result.skippedAsDuplicate > 0 && (
               <p>
-                {result.skippedAsDuplicate} já estava(m) no razão e foi(ram) ignorado(s) — é assim
+                {result.skippedAsDuplicate} já estava(m) no sistema e foi(ram) ignorado(s) — é assim
                 que a idempotência se parece.
               </p>
             )}

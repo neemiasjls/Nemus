@@ -33,7 +33,13 @@ export function Metric({
 
 /**
  * Nao e emblema decorativo: e a afirmacao verificavel de que a soma de todos
- * os saldos e exatamente zero. Por isso mostra a propria soma.
+ * os saldos e exatamente zero.
+ *
+ * O TEXTO NAO USA JARGAO. "Razao integro" e "Sigma saldos" sao corretos e
+ * nao querem dizer nada para quem esta olhando o proprio dinheiro. O que a
+ * pessoa precisa saber e se pode confiar nos numeros da tela - e isso se diz
+ * em portugues. A prova exata continua existindo, no titulo que aparece ao
+ * passar o mouse, para quando alguem quiser conferir.
  */
 export function IntegritySeal({ integrity }: { integrity: Integrity }) {
   const ok = integrity.isIntact;
@@ -43,16 +49,20 @@ export function IntegritySeal({ integrity }: { integrity: Integrity }) {
       className={`seal ${ok ? 'seal-ok' : 'seal-bad'}`}
       title={
         ok
-          ? 'A soma de todos os saldos é exatamente zero: nenhum centavo entrou nem saiu do nada.'
-          : `Transações desbalanceadas: ${integrity.unbalancedTransactions}.`
+          ? `Somando todas as contas, sobra exatamente ${formatAmount(integrity.sumOfAllBalances, true)} — nenhum centavo apareceu nem sumiu.`
+          : `${integrity.unbalancedTransactions} lançamento(s) com entrada e saída que não batem.`
       }
     >
       <span className="seal-icon">
         <Icon name={ok ? 'check' : 'alert'} size={13} />
       </span>
       <span className="seal-text">
-        <strong>{ok ? 'Razão íntegro' : 'Razão inconsistente'}</strong>
-        <span>Σ saldos = {formatAmount(integrity.sumOfAllBalances)}</span>
+        <strong>{ok ? 'Tudo confere' : 'Tem coisa fora do lugar'}</strong>
+        <span>
+          {ok
+            ? 'Nenhum centavo se perdeu'
+            : `${integrity.unbalancedTransactions} lançamento${integrity.unbalancedTransactions === 1 ? '' : 's'} com problema`}
+        </span>
       </span>
     </div>
   );

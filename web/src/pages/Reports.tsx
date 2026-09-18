@@ -60,7 +60,7 @@ export function Reports({ navigate }: PageProps) {
     <>
       <PageHeader
         title="Relatórios"
-        subtitle={`Últimos ${months} meses, somados sobre todo o razão`}
+        subtitle={`Últimos ${months} meses, somados sobre todo o sistema`}
         actions={
           <div className="window-picker" role="group" aria-label="Tamanho da janela">
             {WINDOWS.map((option) => (

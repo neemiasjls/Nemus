@@ -104,7 +104,7 @@ export function SignIn({ onSignIn }: { onSignIn: () => void }) {
           </li>
           <li>
             <Icon name="check" size={14} />
-            Todo real com um envelope
+            Todo real com uma categoria
           </li>
         </ul>
       </aside>

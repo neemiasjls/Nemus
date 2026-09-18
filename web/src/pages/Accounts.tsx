@@ -69,7 +69,7 @@ export function Accounts({ data, reload }: PageProps) {
 
         <Panel title="Contas do sistema">
           <p className="lead">
-            Contrapartidas criadas pelo próprio razão. É por causa delas que a soma de{' '}
+            Contas que o sistema cria sozinho. É por causa delas que a soma de{' '}
             <em>todos</em> os saldos fecha exatamente em zero: o dinheiro nunca sai do sistema —
             ele vai para uma conta que representa o mundo lá fora.
           </p>
@@ -398,7 +398,7 @@ function AccountForm({ onDone }: { onDone: () => Promise<void> }) {
           <strong>Entra no orçamento</strong>
           <span className="note">
             Desmarque para investimento ou reserva que não é dinheiro do dia a dia: o saldo dela não vira dinheiro a
-            atribuir, e gasto pago direto por ela não sai de envelope.
+            separar, e gasto pago direto por ela não sai de categoria.
           </span>
         </span>
       </label>

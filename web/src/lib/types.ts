@@ -37,13 +37,13 @@ export interface PageDefinition {
 export const PAGES: PageDefinition[] = [
   { id: 'overview', slug: 'visao-geral', label: 'Visão geral', icon: 'dashboard' },
   { id: 'budget', slug: 'orcamento', label: 'Orçamento', icon: 'budget' },
-  { id: 'transactions', slug: 'lancamentos', label: 'Lançamentos', icon: 'transactions' },
+  { id: 'transactions', slug: 'lancamentos', label: 'Extrato', icon: 'transactions' },
   { id: 'recurring', slug: 'gastos-fixos', label: 'Gastos fixos', icon: 'repeat' },
   { id: 'reports', slug: 'relatorios', label: 'Relatórios', icon: 'reports' },
   { id: 'categories', slug: 'categorias', label: 'Categorias', icon: 'categories' },
   { id: 'installments', slug: 'parcelas', label: 'Parcelas', icon: 'card' },
   { id: 'accounts', slug: 'contas', label: 'Contas', icon: 'accounts' },
-  { id: 'import', slug: 'importar', label: 'Importar extrato', icon: 'import' },
+  { id: 'import', slug: 'importar', label: 'Importar do banco', icon: 'import' },
 ];
 
 /**

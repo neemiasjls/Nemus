@@ -60,13 +60,13 @@ export function Recurring({ data, reload, navigate }: PageProps) {
       const result = await api.assignRecurring(month);
       setNotice(
         result.filled === 0
-          ? 'Todos os envelopes desses gastos já tinham valor. Nada foi sobrescrito.'
-          : `${result.filled} ${result.filled === 1 ? 'envelope preenchido' : 'envelopes preenchidos'}` +
+          ? 'Todos as categorias desses gastos já tinham valor. Nada foi sobrescrito.'
+          : `${result.filled} ${result.filled === 1 ? 'categoria preenchida' : 'categorias preenchidas'}` +
             (result.skipped > 0 ? `, ${result.skipped} já tinha valor e ficou como estava.` : '.'),
       );
       await reload();
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Não foi possível atribuir ao orçamento.');
+      setError(e instanceof ApiError ? e.message : 'Não foi possível separar ao orçamento.');
     }
   }
 
@@ -101,7 +101,7 @@ export function Recurring({ data, reload, navigate }: PageProps) {
             {items.length > 0 && (
               <button type="button" className="secondary" onClick={() => void assignToBudget()}>
                 <Icon name="budget" size={15} />
-                <span>Atribuir ao orçamento</span>
+                <span>Separar o dinheiro</span>
               </button>
             )}
             <NewButton
@@ -151,7 +151,7 @@ export function Recurring({ data, reload, navigate }: PageProps) {
         <Panel>
           <EmptyState
             title="Ainda não há categorias de despesa."
-            text="Todo gasto fixo mora numa categoria — é ela que liga a previsão ao envelope do orçamento."
+            text="Todo gasto fixo mora numa categoria — é ela que liga a previsão ao dinheiro separado do orçamento."
             action={<button onClick={() => navigate('categories')}>Criar categorias</button>}
           />
         </Panel>
@@ -159,7 +159,7 @@ export function Recurring({ data, reload, navigate }: PageProps) {
         <Panel>
           <EmptyState
             title="Nenhum gasto fixo cadastrado."
-            text="Aluguel, internet, academia, assinatura: o que sai todo mês no mesmo valor. A lista não lança nada — ela mostra o que esperar e confere com o que já entrou no razão."
+            text="Aluguel, internet, academia, assinatura: o que sai todo mês no mesmo valor. A lista não lança nada — ela mostra o que esperar e confere com o que já entrou no sistema."
             action={<button onClick={() => setFormOpen(true)}>Cadastrar o primeiro</button>}
           />
         </Panel>
@@ -176,13 +176,13 @@ export function Recurring({ data, reload, navigate }: PageProps) {
               label="Já veio"
               value={view?.matchedMinorUnits ?? 0}
               tone="credit"
-              detail={`${items.length - pending.length} de ${items.length} encontrados no razão`}
+              detail={`${items.length - pending.length} de ${items.length} encontrados no sistema`}
             />
             <Metric
               label="Ainda vem"
               value={view?.pendingMinorUnits ?? 0}
               tone={pending.length > 0 ? 'debit' : 'neutral'}
-              detail={pending.length === 0 ? 'Tudo já passou pelo razão' : 'Previsto do que falta'}
+              detail={pending.length === 0 ? 'Tudo já passou pelo sistema' : 'Previsto do que falta'}
             />
           </div>
 

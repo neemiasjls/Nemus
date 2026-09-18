@@ -98,7 +98,7 @@ export function Installments({ data, reload, navigate }: PageProps) {
             }
             text={
               liabilities.length === 0
-                ? 'Parcelamento é de cartão. Crie um cartão em Contas — no razão ele é uma conta de passivo.'
+                ? 'Parcelamento é de cartão. Crie um cartão em Contas — no sistema ele é uma conta de passivo.'
                 : 'Sem o dia do fechamento e o do vencimento não dá para saber em qual fatura cada parcela cai. Configure em Contas.'
             }
             action={<button onClick={() => navigate('accounts')}>Ir para Contas</button>}
@@ -162,7 +162,7 @@ export function Installments({ data, reload, navigate }: PageProps) {
           </div>
 
           <p className="note note-center">
-            No razão, uma compra parcelada é <strong>uma</strong> transação: o cartão deve tudo desde
+            No sistema, uma compra parcelada é <strong>uma</strong> transação: o cartão deve tudo desde
             o dia da compra. As parcelas são compromisso de calendário, não lançamentos — por isso
             elas não mexem em saldo nenhum até a fatura chegar.
           </p>
@@ -189,7 +189,7 @@ function UpcomingList({ upcoming }: { upcoming: UpcomingCommitment[] }) {
             <span className="glance-name">{capitalize(monthLongLabel(month.month))}</span>
             <span className="glance-amount">{formatAmount(month.amountMinorUnits)}</span>
           </div>
-          <svg className="envelope-bar spent" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+          <svg className="categoria-bar spent" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
             <rect className="bar-bg" width="100" height="4" rx="2" />
             <rect className="bar-fill" width={(month.amountMinorUnits / largest) * 100} height="4" rx="2" />
           </svg>
@@ -232,7 +232,7 @@ function PlanTable({ plans }: { plans: InstallmentPlan[] }) {
                     {plan.cardName} · {done} de {plan.installmentCount} · até{' '}
                     {monthShort(plan.lastStatementMonth)}
                   </div>
-                  <svg className="envelope-bar ok" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+                  <svg className="categoria-bar ok" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
                     <rect className="bar-bg" width="100" height="4" rx="2" />
                     <rect className="bar-fill" width={(done / plan.installmentCount) * 100} height="4" rx="2" />
                   </svg>

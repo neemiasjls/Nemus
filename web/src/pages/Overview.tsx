@@ -13,7 +13,7 @@ import type { PageProps } from '../lib/types';
 
 /**
  * O painel abre pelo gasto do mes, porque e para isso que o app existe:
- * quanto saiu, quanto ainda ha nos envelopes, quanto falta dar destino.
+ * quanto saiu, quanto ainda ha nas categorias, quanto falta dar destino.
  * Patrimonio fica, mas como contexto, no ultimo cartao.
  */
 export function Overview({ data, navigate }: PageProps) {
@@ -52,9 +52,9 @@ export function Overview({ data, navigate }: PageProps) {
   const available = budget?.availableMinorUnits ?? 0;
   const ready = budget?.readyToAssignMinorUnits ?? 0;
   const readyDetail = {
-    unassigned: 'Esperando um envelope',
+    unassigned: 'Esperando uma categoria',
     balanced: 'Todo real tem destino',
-    overassigned: 'Atribuído além do que existe',
+    overassigned: 'Você separou mais do que tem',
   }[readyState(ready)];
 
   return (
@@ -72,12 +72,12 @@ export function Overview({ data, navigate }: PageProps) {
           detail={`${formatAmount(income, true)} entrou no mês`}
         />
         <Metric
-          label="Nos envelopes"
+          label="Já separado"
           value={available}
           tone={available < 0 ? 'debit' : 'credit'}
-          detail="Somando todos os envelopes"
+          detail="Somando todas as categorias"
         />
-        <Metric label="Pronto para atribuir" value={ready} tone={ready < 0 ? 'debit' : 'neutral'} detail={readyDetail} />
+        <Metric label="Ainda sem destino" value={ready} tone={ready < 0 ? 'debit' : 'neutral'} detail={readyDetail} />
         <Metric
           label="Patrimônio líquido"
           value={netWorth}
@@ -88,7 +88,7 @@ export function Overview({ data, navigate }: PageProps) {
 
       <div className="grid-2">
         <Panel
-          title={`Envelopes de ${monthOnly}`}
+          title={`Seu dinheiro em ${monthOnly}`}
           actions={
             <button type="button" className="link" onClick={() => navigate('budget')}>
               Abrir orçamento <Icon name="chevron" size={13} />
@@ -124,7 +124,7 @@ export function Overview({ data, navigate }: PageProps) {
 
       {truncated && (
         <p className="note note-center">
-          Entradas, saídas e o gasto do mês somam o razão inteiro. Já a lista e o gasto por
+          Entradas, saídas e o gasto do mês somam o sistema inteiro. Já a lista e o gasto por
           categoria acima olham os {data.transactions.length} lançamentos mais recentes de{' '}
           {data.transactionTotal} —{' '}
           <button type="button" className="link" onClick={() => navigate('reports')}>
@@ -137,15 +137,15 @@ export function Overview({ data, navigate }: PageProps) {
   );
 }
 
-/** Os envelopes que pedem atencao: estourados primeiro, depois os mais consumidos. */
+/** As categorias que pedem atencao: estourados primeiro, depois os mais consumidos. */
 function BudgetGlance({ budget, navigate }: { budget: BudgetMonth | null; navigate: PageProps['navigate'] }) {
   const items = budget ? envelopesByAttention(budget.categories).slice(0, 6) : [];
 
   if (items.length === 0) {
     return (
       <EmptyState
-        title="Nenhum envelope com dinheiro."
-        text="Divida o que está pronto para atribuir entre as categorias de despesa. É isso que dá destino a cada real."
+        title="Nenhuma categoria com dinheiro separado."
+        text="Divida o que está ainda sem destino entre as categorias de despesa. É isso que dá destino a cada real."
         action={
           <button className="secondary" onClick={() => navigate('budget')}>
             Distribuir o dinheiro
@@ -169,7 +169,7 @@ function BudgetGlance({ budget, navigate }: { budget: BudgetMonth | null; naviga
                   : `${formatAmount(c.availableMinorUnits)} livre`}
               </span>
             </div>
-            <svg className={`envelope-bar ${usage.state}`} viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+            <svg className={`categoria-bar ${usage.state}`} viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
               <rect className="bar-bg" width="100" height="4" rx="2" />
               {usage.fill > 0 && <rect className="bar-fill" width={usage.fill} height="4" rx="2" />}
             </svg>
@@ -187,7 +187,7 @@ function BudgetGlance({ budget, navigate }: { budget: BudgetMonth | null; naviga
 function Onboarding({ navigate }: { navigate: PageProps['navigate'] }) {
   return (
     <>
-      <PageHeader title="Boas-vindas" subtitle="Três passos para o razão começar a trabalhar." />
+      <PageHeader title="Boas-vindas" subtitle="Três passos para o sistema começar a trabalhar." />
       <div className="onboarding">
         <OnboardingStep
           number={1}
@@ -198,7 +198,7 @@ function Onboarding({ navigate }: { navigate: PageProps['navigate'] }) {
         <OnboardingStep
           number={2}
           title="Organize categorias"
-          text="Moradia, mercado, transporte. Cada categoria de despesa vira um envelope do orçamento."
+          text="Moradia, mercado, transporte. Cada categoria de despesa vira uma categoria do orçamento."
           action={
             <button className="secondary" onClick={() => navigate('categories')}>
               Criar categorias

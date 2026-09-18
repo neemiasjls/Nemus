@@ -28,11 +28,18 @@
  */
 
 :root {
-  --serif: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  /* A serifa saiu da interface: titulo em serifa da ar de relatorio
+     impresso, e isto e um aplicativo. Ela sobrevive so onde ganha algo -
+     na coluna de dinheiro, onde o algarismo tabular alinha os centavos. */
+  --serif: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 
-  --radius: 10px;
-  --radius-m: 7px;
+  --radius: 16px;
+  --radius-m: 11px;
+  --radius-s: 8px;
+
+  /* Botao e chip em capsula: e o que mais distingue aplicativo de planilha. */
+  --radius-pill: 999px;
   --sidebar-width: 244px;
 
   /* ---- claro: papel ---------------------------------------------------- */
@@ -46,21 +53,25 @@
   --line: #e1dacb;
   --line-strong: #c8bea6;
 
-  --credit: #1c6a45;
-  --credit-soft: rgba(28, 106, 69, 0.1);
-  --debit: #a3372e;
-  --debit-soft: rgba(163, 55, 46, 0.09);
-  --accent: #936d22;
-  --accent-soft: rgba(147, 109, 34, 0.12);
+  --credit: #12805a;
+  --credit-soft: rgba(18, 128, 90, 0.14);
+  --debit: #cc3d30;
+  --debit-soft: rgba(204, 61, 48, 0.13);
+
+  /* Violeta: nao colide com o verde de entrada nem com o vermelho de saida,
+     entao pode marcar "onde voce esta" sem parecer alerta. */
+  --accent: #6d4aff;
+  --accent-soft: rgba(109, 74, 255, 0.14);
+  --accent-ink: #ffffff;
 
   --shadow: 0 1px 2px rgba(45, 36, 18, 0.05), 0 6px 18px -10px rgba(45, 36, 18, 0.16);
 
-  --slice-0: #1c6a45;
-  --slice-1: #936d22;
-  --slice-2: #3d5d8a;
-  --slice-3: #a3372e;
-  --slice-4: #6a5a90;
-  --slice-5: #4b7b76;
+  --slice-0: #12805a;
+  --slice-1: #e08b1e;
+  --slice-2: #2f6fd0;
+  --slice-3: #cc3d30;
+  --slice-4: #6d4aff;
+  --slice-5: #0d9c9c;
 
   color-scheme: light;
 }
@@ -77,21 +88,22 @@
   --line: #2a2822;
   --line-strong: #3e3b31;
 
-  --credit: #74c292;
-  --credit-soft: rgba(116, 194, 146, 0.12);
-  --debit: #e9867b;
-  --debit-soft: rgba(233, 134, 123, 0.12);
-  --accent: #d8b262;
-  --accent-soft: rgba(216, 178, 98, 0.13);
+  --credit: #45d39a;
+  --credit-soft: rgba(69, 211, 154, 0.16);
+  --debit: #ff7a6b;
+  --debit-soft: rgba(255, 122, 107, 0.16);
+  --accent: #9b7dff;
+  --accent-soft: rgba(155, 125, 255, 0.18);
+  --accent-ink: #14121f;
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 26px -14px rgba(0, 0, 0, 0.6);
 
-  --slice-0: #74c292;
-  --slice-1: #d8b262;
-  --slice-2: #82a3d2;
-  --slice-3: #e9867b;
-  --slice-4: #ab99d6;
-  --slice-5: #82b8b2;
+  --slice-0: #45d39a;
+  --slice-1: #ffb340;
+  --slice-2: #6ba6ff;
+  --slice-3: #ff7a6b;
+  --slice-4: #9b7dff;
+  --slice-5: #3fd0cf;
 
   color-scheme: dark;
 }
@@ -109,21 +121,22 @@
     --line: #2a2822;
     --line-strong: #3e3b31;
 
-    --credit: #74c292;
-    --credit-soft: rgba(116, 194, 146, 0.12);
-    --debit: #e9867b;
-    --debit-soft: rgba(233, 134, 123, 0.12);
-    --accent: #d8b262;
-    --accent-soft: rgba(216, 178, 98, 0.13);
+    --credit: #45d39a;
+    --credit-soft: rgba(69, 211, 154, 0.16);
+    --debit: #ff7a6b;
+    --debit-soft: rgba(255, 122, 107, 0.16);
+    --accent: #9b7dff;
+    --accent-soft: rgba(155, 125, 255, 0.18);
+    --accent-ink: #14121f;
 
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 26px -14px rgba(0, 0, 0, 0.6);
 
-    --slice-0: #74c292;
-    --slice-1: #d8b262;
-    --slice-2: #82a3d2;
-    --slice-3: #e9867b;
-    --slice-4: #ab99d6;
-    --slice-5: #82b8b2;
+    --slice-0: #45d39a;
+    --slice-1: #ffb340;
+    --slice-2: #6ba6ff;
+    --slice-3: #ff7a6b;
+    --slice-4: #9b7dff;
+    --slice-5: #3fd0cf;
 
     color-scheme: dark;
   }
@@ -220,16 +233,18 @@ table {
  * componente (.secondary, .link, .sign-out...) ganha sem briga e sem !important.
  */
 
+/* Botao em capsula e com a cor de destaque. O botao preto-sobre-bege era
+   sobrio demais: parecia formulario de banco, nao acao de aplicativo. */
 :where(button) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 9px 16px;
-  border: 1px solid var(--ink);
-  border-radius: var(--radius-m);
-  background: var(--ink);
-  color: var(--bg);
+  padding: 9px 18px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
   font: inherit;
   font-size: 0.84rem;
   font-weight: 600;
@@ -376,9 +391,9 @@ input::placeholder {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 12px;
-  border-radius: var(--radius-m);
+  gap: 11px;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
   color: var(--ink-2);
   font-size: 0.9rem;
   font-weight: 500;
@@ -391,21 +406,18 @@ input::placeholder {
 }
 
 .nav a.active {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: var(--shadow);
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: none;
 }
 
-/* Filete de credito na borda da barra, marcando onde voce esta. */
+.nav a.active .icon {
+  color: var(--accent-ink);
+}
+
+/* Sem filete: a cor de fundo do item ja diz onde voce esta. */
 .nav a.active::before {
-  content: "";
-  position: absolute;
-  top: 9px;
-  bottom: 9px;
-  left: -14px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--credit);
+  content: none;
 }
 
 .nav .icon {
@@ -541,7 +553,7 @@ input::placeholder {
 .content-inner {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -568,9 +580,12 @@ input::placeholder {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
-  padding-bottom: 18px;
-  border-bottom: 3px double var(--line-strong);
+  gap: 16px;
+  padding-bottom: 12px;
+
+  /* Fio simples no lugar do fio duplo: o duplo e convencao de livro
+     contabil, e era o detalhe que mais gritava "documento formal". */
+  border-bottom: 1px solid var(--line);
 }
 
 .page-title {
@@ -595,7 +610,7 @@ input::placeholder {
 
 .panel {
   min-width: 0;
-  padding: 20px 22px;
+  padding: 15px 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -661,7 +676,7 @@ input::placeholder {
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 10px;
 }
 
 .metric {

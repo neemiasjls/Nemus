@@ -2,12 +2,12 @@ import type { BudgetCategory } from './api';
 
 /*
  * Leitura do orcamento para a tela. Nenhum numero e calculado aqui: disponivel,
- * atividade e pronto para atribuir vem prontos do servidor, das visoes da
+ * atividade e ainda sem destino vem prontos do servidor, das visoes da
  * migration 010. O que se faz aqui e so arrumar para exibir.
  */
 
 export interface EnvelopeGroup {
-  /** Grupo com subcategorias vira cabecalho; sem subcategorias, e ele mesmo o envelope. */
+  /** Grupo com subcategorias vira cabecalho; sem subcategorias, e ele mesmo a categoria. */
   head: BudgetCategory;
   children: BudgetCategory[];
   /** Soma do grupo e das subcategorias. */
@@ -58,7 +58,7 @@ export type EnvelopeState = 'idle' | 'ok' | 'spent' | 'over';
 
 export interface EnvelopeUsage {
   state: EnvelopeState;
-  /** Quanto o envelope tinha para o mes: o que rolou mais o atribuido. */
+  /** Quanto a categoria tinha para o mes: o que rolou mais o atribuido. */
   funded: number;
   /** Quanto saiu no mes, sem contar estorno. */
   spent: number;
@@ -67,7 +67,7 @@ export interface EnvelopeUsage {
 }
 
 /**
- * disponivel = rolou + atribuido + atividade, entao o que o envelope tinha
+ * disponivel = rolou + atribuido + atividade, entao o que a categoria tinha
  * para gastar no mes e disponivel - atividade.
  */
 export function envelopeUsage(c: BudgetCategory): EnvelopeUsage {
@@ -96,8 +96,8 @@ export function readyState(readyToAssign: number): ReadyState {
 }
 
 /**
- * Envelopes que pedem atencao primeiro: estourados (do mais negativo), depois
- * os mais consumidos. Envelope sem dinheiro e sem gasto nao entra.
+ * Categorias que pedem atencao primeiro: estourados (do mais negativo), depois
+ * os mais consumidos. Categoria sem dinheiro e sem gasto nao entra.
  */
 export function envelopesByAttention(categories: BudgetCategory[]): BudgetCategory[] {
   const rank = (c: BudgetCategory) => {

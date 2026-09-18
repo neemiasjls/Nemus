@@ -13,7 +13,7 @@ export function Transactions({ data, reload, navigate }: PageProps) {
   const [accountFilter, setAccountFilter] = useState('');
   const [search, setSearch] = useState('');
   // O orcamento manda para ca com "#/lancamentos?sem-categoria" quando ha
-  // dinheiro fora de envelope: a tela ja abre filtrada no que falta fazer.
+  // dinheiro fora de categoria: a tela ja abre filtrada no que falta fazer.
   const [pendingOnly, setPendingOnly] = useState(() =>
     window.location.hash.includes('?sem-categoria'),
   );
@@ -42,7 +42,7 @@ export function Transactions({ data, reload, navigate }: PageProps) {
     <>
       <PageHeader
         title="Lançamentos"
-        subtitle={total === 1 ? '1 lançamento no razão' : `${total} lançamentos no razão`}
+        subtitle={total === 1 ? '1 lançamento no sistema' : `${total} lançamentos no sistema`}
         actions={
           ownAccounts.length > 0 && (
             <NewButton open={formOpen} label="Novo lançamento" onToggle={() => setFormOpen((v) => !v)} />
@@ -100,7 +100,7 @@ export function Transactions({ data, reload, navigate }: PageProps) {
                 className={pendingOnly ? 'toggle active' : 'toggle'}
                 aria-pressed={pendingOnly}
                 onClick={() => setPendingOnly((v) => !v)}
-                title="Gasto sem categoria fica fora dos envelopes e some do pronto para atribuir"
+                title="Gasto sem categoria fica fora das categorias e some do ainda sem destino"
               >
                 <Icon name="alert" size={14} />
                 <span>
@@ -123,7 +123,7 @@ export function Transactions({ data, reload, navigate }: PageProps) {
                 data.transactions.length === 0
                   ? 'Use o botão acima ou importe um extrato do banco.'
                   : pendingOnly
-                    ? 'Todo gasto já tem envelope.'
+                    ? 'Todo gasto já tem categoria.'
                     : 'Tente outro termo ou outra conta.'
               }
             />

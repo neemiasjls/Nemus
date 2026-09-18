@@ -14,9 +14,9 @@ import { formatMinorUnits, parseToMinorUnits } from '../lib/money';
 import type { PageProps } from '../lib/types';
 
 /**
- * O orcamento de envelopes. Todo real das contas do orcamento esta num
- * envelope ou esperando atribuicao; esta tela existe para levar o "pronto
- * para atribuir" a zero e mostrar, a qualquer momento, que a conta fecha.
+ * O orcamento de categorias. Todo real das contas do orcamento esta num
+ * categoria ou esperando atribuicao; esta tela existe para levar o "pronto
+ * para separar" a zero e mostrar, a qualquer momento, que a conta fecha.
  */
 export function Budget({ data, reload, navigate }: PageProps) {
   const thisMonth = currentMonth();
@@ -57,7 +57,7 @@ export function Budget({ data, reload, navigate }: PageProps) {
       if (e instanceof ApiError && e.status === 401) {
         void reload();
       }
-      setError(e instanceof Error ? e.message : 'Não foi possível salvar a atribuição.');
+      setError(e instanceof Error ? e.message : 'Não foi possível salvar a separação.');
       throw e;
     }
   }
@@ -66,7 +66,7 @@ export function Budget({ data, reload, navigate }: PageProps) {
   const monthName = capitalize(monthLongLabel(month));
   const overspent = view?.categories.filter((c) => c.availableMinorUnits < 0) ?? [];
   const groups = view ? groupEnvelopes(view.categories) : [];
-  // Grupo com subcategorias e cabecalho, nao envelope - a menos que tenha dinheiro proprio.
+  // Grupo com subcategorias e cabecalho, nao categoria - a menos que tenha dinheiro proprio.
   const envelopeCount = groups.reduce(
     (count, g) => count + (g.children.length === 0 ? 1 : g.children.length + (hasOwnMoney(g.head) ? 1 : 0)),
     0,
@@ -97,8 +97,8 @@ export function Budget({ data, reload, navigate }: PageProps) {
         <PageHeader title="Orçamento" subtitle="Cada real com um destino." />
         <Panel>
           <EmptyState
-            title="Nenhum envelope ainda."
-            text="Envelope é categoria de despesa. Crie as suas — moradia, mercado, transporte — e volte para dividir o dinheiro entre elas."
+            title="Nenhuma categoria ainda."
+            text="Categoria é categoria de despesa. Crie as suas — moradia, mercado, transporte — e volte para dividir o dinheiro entre elas."
             action={<button onClick={() => navigate('categories')}>Criar categorias</button>}
           />
         </Panel>
@@ -112,7 +112,7 @@ export function Budget({ data, reload, navigate }: PageProps) {
         title="Orçamento"
         subtitle={
           view
-            ? `${envelopeCount} ${envelopeCount === 1 ? 'envelope' : 'envelopes'} · ${formatAmount(-view.activityMinorUnits, true)} gastos em ${monthLongLabel(month)}`
+            ? `${envelopeCount} ${envelopeCount === 1 ? 'categoria' : 'categorias'} · ${formatAmount(-view.activityMinorUnits, true)} gastos em ${monthLongLabel(month)}`
             : 'Cada real com um destino.'
         }
         actions={monthNav}
@@ -133,16 +133,16 @@ export function Budget({ data, reload, navigate }: PageProps) {
           <ReadyToAssign view={view} />
 
           <div className="metrics metrics-3">
-            <MonthFigure label={`Atribuído em ${monthShort(month)}`} value={view.assignedMinorUnits} detail="Colocado nos envelopes neste mês" />
+            <MonthFigure label={`Separado em ${monthShort(month)}`} value={view.assignedMinorUnits} detail="Colocado nas categorias neste mês" />
             <MonthFigure
               label={`Gasto em ${monthShort(month)}`}
               value={-view.activityMinorUnits}
-              detail={view.activityMinorUnits > 0 ? 'Estornos maiores que os gastos' : 'Saiu dos envelopes'}
+              detail={view.activityMinorUnits > 0 ? 'Estornos maiores que os gastos' : 'Saiu das categorias'}
             />
             <MonthFigure
               label={`Entrou em ${monthShort(month)}`}
               value={view.netInflowMinorUnits}
-              detail="Receita e saldo novo, ainda sem envelope"
+              detail="Receita e saldo novo, ainda sem categoria"
             />
           </div>
 
@@ -156,7 +156,7 @@ export function Budget({ data, reload, navigate }: PageProps) {
                     : `${view.uncategorizedTransactions} lançamentos sem categoria`}
                 </strong>{' '}
                 em {monthLongLabel(month)}, somando {formatAmount(view.uncategorizedMinorUnits, true)}. Enquanto não
-                tiverem envelope, esse dinheiro sai do pronto para atribuir.
+                tiverem categoria, esse dinheiro sai do ainda sem destino.
               </p>
               <button
                 type="button"
@@ -175,15 +175,15 @@ export function Budget({ data, reload, navigate }: PageProps) {
               <Icon name="alert" size={17} />
               <p>
                 <strong>
-                  {overspent.length === 1 ? '1 envelope estourou' : `${overspent.length} envelopes estouraram`}
+                  {overspent.length === 1 ? '1 categoria estourou' : `${overspent.length} categorias estouraram`}
                 </strong>
-                . O estouro rola para o mês seguinte até ser coberto — use <em>Cobrir</em> para tirar do pronto
-                para atribuir, ou reduza outro envelope.
+                . O estouro passa para o mês seguinte até ser coberto — use <em>Cobrir</em> para tirar do
+                dinheiro sem destino, ou reduza outra categoria.
               </p>
             </div>
           )}
 
-          <Panel title="Envelopes" actions={<span className="hint">Clique no valor atribuído para mudar</span>}>
+          <Panel title="Categorias" actions={<span className="hint">Clique no valor para mudar</span>}>
             <EnvelopeTable groups={groups} onAssign={assign} view={view} />
           </Panel>
         </div>
@@ -211,15 +211,15 @@ function MonthFigure({ label, value, detail }: { label: string; value: number; d
 function ReadyToAssign({ view }: { view: BudgetMonth }) {
   const state = readyState(view.readyToAssignMinorUnits);
   const message = {
-    unassigned: 'Dinheiro esperando um envelope. Distribua até zerar.',
+    unassigned: 'Dinheiro esperando uma categoria. Distribua até zerar.',
     balanced: 'Todo real tem um destino.',
-    overassigned: 'Atribuído além do que existe nas contas. Tire de algum envelope.',
+    overassigned: 'Você separou mais do que tem nas contas. Tire de alguma categoria.',
   }[state];
 
   return (
-    <section className={`ready ready-${state}`} aria-label="Pronto para atribuir">
+    <section className={`ready ready-${state}`} aria-label="Ainda sem destino">
       <div className="ready-main">
-        <p className="ready-label">Pronto para atribuir</p>
+        <p className="ready-label">Ainda sem destino</p>
         <p className="ready-value">{formatAmount(view.readyToAssignMinorUnits, true)}</p>
         <p className="ready-text">{message}</p>
       </div>
@@ -229,14 +229,14 @@ function ReadyToAssign({ view }: { view: BudgetMonth }) {
         <div className="equation-line">
           <span className="equation-label">
             <span className="equation-op" aria-hidden="true" />
-            Nos envelopes
+            Já separado
           </span>
           <span className="equation-value">{formatAmount(view.availableMinorUnits, true)}</span>
         </div>
         <div className="equation-line">
           <span className="equation-label">
             <span className="equation-op" aria-hidden="true">+</span>
-            A atribuir
+            A separar
           </span>
           <span className="equation-value">{formatAmount(view.readyToAssignMinorUnits, true)}</span>
         </div>
@@ -251,8 +251,8 @@ function ReadyToAssign({ view }: { view: BudgetMonth }) {
               className={`equation-check ${view.isBalanced ? 'ok' : 'bad'}`}
               title={
                 view.isBalanced
-                  ? 'O saldo das contas, lido direto do razão, bate com envelopes mais o que falta atribuir.'
-                  : 'A conta não fecha: o saldo do razão difere de envelopes mais pronto para atribuir.'
+                  ? 'O saldo das contas, lido direto do sistema, bate com categorias mais o que falta separar.'
+                  : 'A conta não fecha: o saldo do sistema difere de categorias mais ainda sem destino.'
               }
             >
               <Icon name={view.isBalanced ? 'check' : 'alert'} size={13} />
@@ -279,20 +279,20 @@ function EnvelopeTable({
       <table className="budget-table">
         <thead>
           <tr>
-            <th>Envelope</th>
-            <th className="amount col-assigned">Atribuído</th>
-            <th className="amount col-activity">Atividade</th>
-            <th className="amount col-available">Disponível</th>
+            <th>Categoria</th>
+            <th className="amount col-assigned">Separado</th>
+            <th className="amount col-activity">Gastou</th>
+            <th className="amount col-available">Sobra</th>
           </tr>
         </thead>
         {groups.map((group) =>
           group.children.length === 0 ? (
-            <tbody key={group.head.categoryId} className="envelope-single">
+            <tbody key={group.head.categoryId} className="categoria-single">
               <EnvelopeRow category={group.head} onAssign={onAssign} />
             </tbody>
           ) : (
             <tbody key={group.head.categoryId}>
-              <tr className="envelope-group">
+              <tr className="categoria-group">
                 <th scope="rowgroup">{group.head.name}</th>
                 <td className="amount">{formatAmount(group.totals.assigned)}</td>
                 <td className="amount activity">{group.totals.activity === 0 ? '—' : formatAmount(group.totals.activity)}</td>
@@ -336,13 +336,13 @@ function EnvelopeRow({
   const available = category.availableMinorUnits;
 
   return (
-    <tr className={`envelope-row${nested ? ' nested' : ''}`}>
+    <tr className={`categoria-row${nested ? ' nested' : ''}`}>
       <td>
-        <div className="envelope-name">
+        <div className="categoria-name">
           <span>{name}</span>
           {category.isArchived && <span className="tag">ARQUIVADA</span>}
         </div>
-        <svg className={`envelope-bar ${usage.state}`} viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+        <svg className={`categoria-bar ${usage.state}`} viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
           <rect className="bar-bg" width="100" height="4" rx="2" />
           {usage.fill > 0 && <rect className="bar-fill" width={usage.fill} height="4" rx="2" />}
         </svg>
@@ -361,8 +361,8 @@ function EnvelopeRow({
             <button
               type="button"
               className="link cover"
-              aria-label={`Cobrir o estouro de ${name}: atribuir mais ${formatAmount(-available, true)}`}
-              title={`Atribui mais ${formatAmount(-available, true)} a ${name}, tirando do pronto para atribuir.`}
+              aria-label={`Cobrir o estouro de ${name}: separar mais ${formatAmount(-available, true)}`}
+              title={`Atribui mais ${formatAmount(-available, true)} a ${name}, tirando do ainda sem destino.`}
               onClick={() => void onAssign(category.categoryId, category.assignedMinorUnits - available).catch(() => undefined)}
             >
               Cobrir
@@ -379,7 +379,7 @@ function EnvelopeRow({
 
 /**
  * Valor atribuido, editavel no lugar. Enter ou sair do campo grava; Esc
- * desiste. Negativo e aceito - e como se tira dinheiro de um envelope.
+ * desiste. Negativo e aceito - e como se tira dinheiro de uma categoria.
  */
 function AssignedInput({
   value,
@@ -445,7 +445,7 @@ function AssignedInput({
 
   if (!editing) {
     return (
-      <button type="button" className="assigned-button" onClick={start} aria-label={`Atribuído a ${label}: ${formatAmount(value, true)}. Alterar`}>
+      <button type="button" className="assigned-button" onClick={start} aria-label={`Separado a ${label}: ${formatAmount(value, true)}. Alterar`}>
         {value === 0 ? <span className="assigned-empty">—</span> : formatAmount(value)}
       </button>
     );
@@ -467,7 +467,7 @@ function AssignedInput({
         inputMode="decimal"
         placeholder="0,00"
         disabled={saving}
-        aria-label={`Valor atribuído a ${label}`}
+        aria-label={`Valor separado a ${label}`}
         aria-invalid={invalid !== null}
         title={invalid ?? undefined}
         autoFocus

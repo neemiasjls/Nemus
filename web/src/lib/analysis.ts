@@ -165,9 +165,9 @@ export function monthSummary(transactions: Transaction[], month: string): MonthS
  * fatura do cartao com a conta corrente - da exatamente zero.
  */
 /**
- * Tem gasto sem envelope? E a perna na conta de despesa externa sem
+ * Tem gasto sem categoria? E a perna na conta de despesa externa sem
  * categoria - a mesma regra que v_budget_entries usa para contar "saiu sem
- * categoria". Receita sem categoria nao entra: ela vira dinheiro a atribuir,
+ * categoria". Receita sem categoria nao entra: ela vira dinheiro sem destino,
  * que e destino legitimo.
  */
 export function needsCategory(t: Transaction): boolean {

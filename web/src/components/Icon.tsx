@@ -37,7 +37,7 @@ const STROKES: Record<IconName, ReactNode> = {
       <rect x="3.5" y="14.5" width="7" height="6" rx="1.2" />
     </>
   ),
-  // O metodo e de envelopes; o icone e literal.
+  // O metodo e de categorias; o icone e literal.
   budget: (
     <>
       <rect x="3" y="5.5" width="18" height="13" rx="1.8" />

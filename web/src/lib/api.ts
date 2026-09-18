@@ -260,7 +260,7 @@ export interface NetWorth {
   netWorthMinorUnits: number;
 }
 
-/** Um envelope num mes. Atividade e negativa quando se gasta. */
+/** Uma categoria num mes. O que gastou e negativo. */
 export interface BudgetCategory {
   categoryId: string;
   parentId: string | null;
@@ -273,7 +273,7 @@ export interface BudgetCategory {
 
 /**
  * O orcamento de um mes. isBalanced e a invariante do metodo, conferida no
- * servidor: disponivel + pronto para atribuir = saldo das contas do orcamento.
+ * servidor: disponivel + ainda sem destino = saldo das contas do orcamento.
  */
 export interface BudgetMonth {
   month: string;
@@ -498,7 +498,7 @@ export const api = {
   budget: (month: string) => request<BudgetMonth>(`/api/budget/${encodeURIComponent(month)}`),
 
   // Substitui o valor atribuido, nao soma: repetir o pedido nao dobra o
-  // envelope. A resposta e o mes inteiro, porque o pronto para atribuir muda junto.
+  // categoria. A resposta e o mes inteiro, porque o ainda sem destino muda junto.
   assign: (month: string, categoryId: string, amountMinorUnits: number) =>
     request<BudgetMonth>(
       `/api/budget/${encodeURIComponent(month)}/categories/${encodeURIComponent(categoryId)}`,
@@ -523,8 +523,8 @@ export const api = {
   removeRecurring: (id: string, purge = false) =>
     request<void>(`/api/recurring/${encodeURIComponent(id)}?purge=${purge}`, { method: 'DELETE' }),
 
-  // Enche os envelopes vazios do mês com o previsto. Não sobrescreve o que
-  // já foi atribuído na mão.
+  // Enche as categorias vazios do mês com o previsto. Não sobrescreve o que
+  // já foi separado na mão.
   assignRecurring: (month: string) =>
     request<AssignRecurringResult>(`/api/recurring/${encodeURIComponent(month)}/assign`, {
       method: 'POST',
