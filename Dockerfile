@@ -26,6 +26,17 @@ USER 10001
 
 COPY --from=build /app .
 
+# Autoridade certificadora da Supabase. O certificado do banco e assinado pela
+# CA propria deles (Supabase Root 2021 CA), que nao esta na lista de raizes
+# confiaveis da imagem - sem isto o handshake TLS e recusado.
+#
+# A alternativa seria Trust Server Certificate=true, que cifra o trafego mas
+# para de conferir COM QUEM se esta falando. A senha do banco viaja nessa
+# conexao; verificar o certificado e o que separa "cifrado" de "seguro".
+#
+# E uma CA publica, sem nada secreto: vem no proprio handshake. Vence em 2031.
+COPY deploy/supabase-ca.crt /app/supabase-ca.crt
+
 ENV ASPNETCORE_ENVIRONMENT=Production
 EXPOSE 8080
 

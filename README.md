@@ -413,7 +413,25 @@ Host=db.SEU-PROJETO.supabase.co;Port=5432;Database=postgres;Username=postgres;Pa
 ```
 
 Use a conexão **direta** (5432) ou o pooler em modo sessão. O pooler em modo
-transação (6543) não aguenta o DDL destas migrations.
+transação (6543) não aguenta o DDL destas migrations. Em rede sem IPv6 — a do
+Render, por exemplo — só o pooler em modo sessão funciona, porque a conexão
+direta resolve apenas para IPv6.
+
+**O certificado do Supabase precisa da CA deles.** O banco apresenta um
+certificado assinado por `Supabase Root 2021 CA`, que não está entre as raízes
+confiáveis de uma imagem Linux comum: sem ela o handshake é recusado com
+*"The remote certificate was rejected"*. A CA vai versionada em
+`deploy/supabase-ca.crt`, o Dockerfile a copia para dentro da imagem, e a
+conexão aponta para ela:
+
+```
+...;SSL Mode=VerifyFull;Root Certificate=/app/supabase-ca.crt
+```
+
+A saída fácil seria `Trust Server Certificate=true` — que é o que o próprio
+painel do Supabase sugere. Ela cifra o tráfego mas para de conferir **com quem**
+se está falando, e a senha do banco viaja nessa conexão. Verificar o
+certificado é o que separa "cifrado" de "seguro".
 
 Cloudflare D1 não substitui o Postgres aqui: é SQLite, e não tem
 `CONSTRAINT TRIGGER` diferido, índice único parcial nem coluna gerada — que
