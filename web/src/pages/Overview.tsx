@@ -7,14 +7,13 @@ import { EmptyState, PageHeader, Panel } from '../components/Panel';
 import { TransactionTable } from '../components/TransactionTable';
 import { flowFromReport, monthSummary, spendingByCategory } from '../lib/analysis';
 import type { BudgetMonth } from '../lib/api';
-import { envelopeUsage, envelopesByAttention, readyState } from '../lib/budget';
-import { capitalize, currentMonth, formatAmount, monthLongLabel } from '../lib/format';
+import { envelopeUsage, envelopesByAttention } from '../lib/budget';
+import { capitalize, currentMonth, formatAmount, monthLongLabel, shiftMonth } from '../lib/format';
 import type { PageProps } from '../lib/types';
 
 /**
- * O painel abre pelo gasto do mes, porque e para isso que o app existe:
- * quanto saiu, quanto ainda ha nas categorias, quanto falta dar destino.
- * Patrimonio fica, mas como contexto, no ultimo cartao.
+ * O painel abre pelo gasto do mes, porque e para isso que o app existe, e
+ * segue a planilha de onde os dados vieram: entrou, gastou, sobrou.
  */
 export function Overview({ data, navigate }: PageProps) {
   const month = currentMonth();
@@ -42,26 +41,40 @@ export function Overview({ data, navigate }: PageProps) {
     return <Onboarding navigate={navigate} />;
   }
 
-  const brl = data.netWorth.find((n) => n.currencyCode === 'BRL') ?? data.netWorth[0];
-  const netWorth = brl?.netWorthMinorUnits ?? 0;
   const truncated = data.transactionTotal > data.transactions.length;
   const monthName = capitalize(monthLongLabel(month));
   const monthOnly = monthLongLabel(month).split(' ')[0];
+  const previousOnly = monthLongLabel(shiftMonth(month, -1)).split(' ')[0];
+
+  /*
+   * OS QUATRO CARTOES SAO A PLANILHA DO DONO: entrou, gastou, sobrou.
+   *
+   * A sobra e o saldo das contas do dia a dia (as que entram no orcamento,
+   * cartao incluido). Ela ja carrega o mes anterior sozinha - e o "SALDO
+   * ANTERIOR" da planilha, que la precisa ser copiado a mao e aqui vem do
+   * razao. Conferido contra a planilha em set/2026: -735,38 nos dois.
+   *
+   * O saldo anterior sai por diferenca: sobra - resultado do mes. Vale
+   * enquanto nao houver lancamento datado depois deste mes.
+   *
+   * "Ja separado" e "ainda sem destino" sairam daqui: sao numeros do
+   * orcamento, e para quem ainda nao usa o orcamento eles acumulam todo o
+   * gasto desde o primeiro dia e nao querem dizer nada. Moram na tela de
+   * Orcamento, onde fazem sentido.
+   */
+  const leftover = data.accounts
+    .filter((a) => a.isOnBudget && !a.isSystem && a.currencyCode === 'BRL')
+    .reduce((sum, a) => sum + a.balanceMinorUnits, 0);
+  const result = income - expense;
+  const carried = leftover - result;
 
   const budget = data.budget;
-  const available = budget?.availableMinorUnits ?? 0;
-  const ready = budget?.readyToAssignMinorUnits ?? 0;
-  const readyDetail = {
-    unassigned: 'Esperando uma categoria',
-    balanced: 'Todo real tem destino',
-    overassigned: 'Você separou mais do que tem',
-  }[readyState(ready)];
 
   return (
     <>
       <PageHeader
         title="Visão geral"
-        subtitle={`${monthName} · ${summary.count} ${summary.count === 1 ? 'lançamento' : 'lançamentos'} no mês`}
+        subtitle={monthName}
       />
 
       <div className="metrics">
@@ -69,20 +82,20 @@ export function Overview({ data, navigate }: PageProps) {
           featured
           label={`Gastos de ${monthOnly}`}
           value={expense}
-          detail={`${formatAmount(income, true)} entrou no mês`}
+          detail={`${summary.count} ${summary.count === 1 ? 'lançamento' : 'lançamentos'}`}
+        />
+        <Metric label={`Entrou em ${monthOnly}`} value={income} tone="credit" detail="Salário, vendas e o que te devolveram" />
+        <Metric
+          label="Resultado do mês"
+          value={result}
+          tone={result < 0 ? 'debit' : 'credit'}
+          detail={result < 0 ? 'Gastou mais do que entrou' : 'Entrou mais do que gastou'}
         />
         <Metric
-          label="Já separado"
-          value={available}
-          tone={available < 0 ? 'debit' : 'credit'}
-          detail="Somando todas as categorias"
-        />
-        <Metric label="Ainda sem destino" value={ready} tone={ready < 0 ? 'debit' : 'neutral'} detail={readyDetail} />
-        <Metric
-          label="Patrimônio líquido"
-          value={netWorth}
-          tone={netWorth < 0 ? 'debit' : 'neutral'}
-          detail="Ativos menos o que você deve"
+          label="Sobra"
+          value={leftover}
+          tone={leftover < 0 ? 'debit' : 'neutral'}
+          detail={`${formatAmount(carried, true)} veio de ${previousOnly}`}
         />
       </div>
 
@@ -141,14 +154,18 @@ export function Overview({ data, navigate }: PageProps) {
 function BudgetGlance({ budget, navigate }: { budget: BudgetMonth | null; navigate: PageProps['navigate'] }) {
   const items = budget ? envelopesByAttention(budget.categories).slice(0, 6) : [];
 
-  if (items.length === 0) {
+  // Sem nenhuma categoria com limite, a lista seria so "quanto gastou em
+  // cada uma" - que e exatamente o painel ao lado. Melhor dizer o que falta.
+  const anyFunded = items.some((c) => envelopeUsage(c).funded > 0);
+
+  if (!anyFunded) {
     return (
       <EmptyState
-        title="Nenhuma categoria com dinheiro separado."
-        text="Divida o que está ainda sem destino entre as categorias de despesa. É isso que dá destino a cada real."
+        title="Você ainda não definiu limites."
+        text="Diga quanto quer gastar em cada categoria no mês. A partir daí, aqui aparece quanto ainda pode gastar em cada uma — e quais passaram do ponto."
         action={
           <button className="secondary" onClick={() => navigate('budget')}>
-            Distribuir o dinheiro
+            Definir limites
           </button>
         }
       />
@@ -159,22 +176,27 @@ function BudgetGlance({ budget, navigate }: { budget: BudgetMonth | null; naviga
     <ul className="glance">
       {items.map((c) => {
         const usage = envelopeUsage(c);
+        const unbudgeted = usage.state === 'unbudgeted';
         return (
           <li key={c.categoryId} className="glance-row">
             <div className="glance-head">
               <span className="glance-name">{c.name}</span>
               <span className={`glance-amount ${usage.state === 'over' ? 'debit' : ''}`}>
-                {usage.state === 'over'
-                  ? `estourou ${formatAmount(-c.availableMinorUnits)}`
-                  : `${formatAmount(c.availableMinorUnits)} livre`}
+                {unbudgeted
+                  ? formatAmount(usage.spent, true)
+                  : usage.state === 'over'
+                    ? `estourou ${formatAmount(-c.availableMinorUnits, true)}`
+                    : `${formatAmount(c.availableMinorUnits, true)} livre`}
               </span>
             </div>
-            <svg className={`categoria-bar ${usage.state}`} viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+            <svg className={`envelope-bar ${usage.state}`} viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
               <rect className="bar-bg" width="100" height="4" rx="2" />
               {usage.fill > 0 && <rect className="bar-fill" width={usage.fill} height="4" rx="2" />}
             </svg>
             <p className="subtext">
-              {formatAmount(usage.spent)} gastos de {formatAmount(Math.max(usage.funded, 0))}
+              {unbudgeted
+                ? 'gasto no mês · nada separado para isso'
+                : `${formatAmount(usage.spent, true)} gastos de ${formatAmount(Math.max(usage.funded, 0), true)}`}
             </p>
           </li>
         );

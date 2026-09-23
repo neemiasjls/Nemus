@@ -189,7 +189,7 @@ function UpcomingList({ upcoming }: { upcoming: UpcomingCommitment[] }) {
             <span className="glance-name">{capitalize(monthLongLabel(month.month))}</span>
             <span className="glance-amount">{formatAmount(month.amountMinorUnits)}</span>
           </div>
-          <svg className="categoria-bar spent" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+          <svg className="envelope-bar spent" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
             <rect className="bar-bg" width="100" height="4" rx="2" />
             <rect className="bar-fill" width={(month.amountMinorUnits / largest) * 100} height="4" rx="2" />
           </svg>
@@ -232,7 +232,7 @@ function PlanTable({ plans }: { plans: InstallmentPlan[] }) {
                     {plan.cardName} · {done} de {plan.installmentCount} · até{' '}
                     {monthShort(plan.lastStatementMonth)}
                   </div>
-                  <svg className="categoria-bar ok" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+                  <svg className="envelope-bar ok" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
                     <rect className="bar-bg" width="100" height="4" rx="2" />
                     <rect className="bar-fill" width={(done / plan.installmentCount) * 100} height="4" rx="2" />
                   </svg>

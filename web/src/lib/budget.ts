@@ -54,7 +54,14 @@ export function groupEnvelopes(categories: BudgetCategory[]): EnvelopeGroup[] {
 export const hasOwnMoney = (c: BudgetCategory) =>
   c.assignedMinorUnits !== 0 || c.activityMinorUnits !== 0 || c.availableMinorUnits !== 0;
 
-export type EnvelopeState = 'idle' | 'ok' | 'spent' | 'over';
+/**
+ * `unbudgeted` existe para separar duas coisas que a conta confunde: quem
+ * gastou R$ 80 tendo separado R$ 50 estourou o que planejou; quem gastou
+ * R$ 80 sem nunca ter separado nada nao estourou nada - so ainda nao usou o
+ * orcamento. As duas dao disponivel negativo, mas dizer "estourou" para a
+ * segunda e acusar a pessoa de furar um limite que ela nunca pos.
+ */
+export type EnvelopeState = 'idle' | 'ok' | 'spent' | 'over' | 'unbudgeted';
 
 export interface EnvelopeUsage {
   state: EnvelopeState;
@@ -74,11 +81,12 @@ export function envelopeUsage(c: BudgetCategory): EnvelopeUsage {
   const spent = Math.max(0, -c.activityMinorUnits);
   const funded = c.availableMinorUnits - c.activityMinorUnits;
 
+  // A ordem importa: sem nada separado, disponivel negativo NAO e estouro.
+  if (funded <= 0) {
+    return { state: spent > 0 ? 'unbudgeted' : 'idle', funded, spent, fill: 0 };
+  }
   if (c.availableMinorUnits < 0) {
     return { state: 'over', funded, spent, fill: 100 };
-  }
-  if (funded <= 0) {
-    return { state: 'idle', funded, spent, fill: 0 };
   }
   if (c.availableMinorUnits === 0 && spent > 0) {
     return { state: 'spent', funded, spent, fill: 100 };
@@ -103,6 +111,10 @@ export function envelopesByAttention(categories: BudgetCategory[]): BudgetCatego
   const rank = (c: BudgetCategory) => {
     const usage = envelopeUsage(c);
     if (usage.state === 'over') return -1_000_000_000_000 + c.availableMinorUnits;
+    // Sem nada separado nao ha o que estourar, entao vem depois de quem tem
+    // orcamento de verdade - mas entre si, quem consumiu mais aparece antes:
+    // enquanto o orcamento nao for usado, e a unica ordem que informa algo.
+    if (usage.state === 'unbudgeted') return 1_000_000_000_000 - usage.spent;
     return -usage.fill;
   };
 

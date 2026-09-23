@@ -53,7 +53,7 @@ export function ImportPage({ data, reload, navigate }: PageProps) {
             </li>
             <li>
               <span>
-                <strong>Importe.</strong> Cada linha vira um lançamento com duas partidas.
+                <strong>Importe.</strong> Cada linha do extrato vira um lançamento.
               </span>
             </li>
           </ol>

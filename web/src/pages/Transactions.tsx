@@ -9,7 +9,10 @@ import { parseToMinorUnits } from '../lib/money';
 import type { AppData, PageProps } from '../lib/types';
 
 export function Transactions({ data, reload, navigate }: PageProps) {
-  const [formOpen, setFormOpen] = useState(false);
+  // O botao fixo da barra lateral manda para ca com "?novo": o formulario
+  // ja abre. Lancar um gasto e a acao que mais se repete no app, e ela nao
+  // pode custar tres cliques - abrir a aba, achar o botao, clicar.
+  const [formOpen, setFormOpen] = useState(() => window.location.hash.includes('?novo'));
   const [accountFilter, setAccountFilter] = useState('');
   const [search, setSearch] = useState('');
   // O orcamento manda para ca com "#/lancamentos?sem-categoria" quando ha
@@ -143,10 +146,18 @@ export function Transactions({ data, reload, navigate }: PageProps) {
 
 type Kind = 'expense' | 'income' | 'transfer';
 
-const KINDS: { value: Kind; label: string }[] = [
-  { value: 'expense', label: 'Despesa' },
-  { value: 'income', label: 'Receita' },
-  { value: 'transfer', label: 'Transferência' },
+const KINDS: { value: Kind; label: string; ajuda: string }[] = [
+  { value: 'expense', label: 'Gasto', ajuda: 'Dinheiro que saiu: mercado, gasolina, uma assinatura.' },
+  {
+    value: 'income',
+    label: 'Entrada',
+    ajuda: 'Dinheiro que veio de fora e te deixou com mais: salário, uma venda, um reembolso.',
+  },
+  {
+    value: 'transfer',
+    label: 'Transferência',
+    ajuda: 'Dinheiro seu mudando de lugar — da conta para a poupança, ou pagar a fatura do cartão. Você não fica mais rico nem mais pobre.',
+  },
 ];
 
 function TransactionForm({ data, onDone }: { data: AppData; onDone: () => Promise<void> }) {
@@ -256,6 +267,10 @@ function TransactionForm({ data, onDone }: { data: AppData; onDone: () => Promis
         ))}
       </div>
 
+      {/* A ajuda fica DEBAIXO da escolha, nao no rodape do formulario:
+          a duvida e antes de escolher, nao depois de preencher. */}
+      <p className="kind-help">{KINDS.find((k) => k.value === kind)?.ajuda}</p>
+
       <div className="fields">
         <label className="field field-wide">
           <span>Descrição</span>
@@ -327,8 +342,10 @@ function TransactionForm({ data, onDone }: { data: AppData; onDone: () => Promis
       <div className="form-footer">
         <p className="note">
           {kind === 'transfer'
-            ? 'Transferência não é gasto nem receita: só muda o dinheiro de lugar.'
-            : 'Vira duas partidas que somam zero. A contrapartida é criada sozinha.'}
+            ? 'Sai de uma conta sua e entra na outra. Nenhum gasto é criado.'
+            : kind === 'income'
+              ? 'O dinheiro entra na conta escolhida e a categoria diz de onde veio.'
+              : 'Sai da conta escolhida e entra na categoria. O outro lado é feito sozinho.'}
         </p>
         <button type="submit" disabled={saving}>
           {saving ? 'Salvando…' : 'Salvar lançamento'}

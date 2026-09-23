@@ -86,8 +86,8 @@ export function SignIn({ onSignIn }: { onSignIn: () => void }) {
             do <em>livro</em>.
           </h1>
           <p className="sign-in-text">
-            Razão de partidas dobradas para finanças pessoais. Nenhum centavo entra ou sai
-            do nada — e o sistema prova isso a cada lançamento.
+            Suas contas pessoais, organizadas. Nenhum centavo aparece nem some do nada —
+            e o sistema confere isso a cada lançamento.
           </p>
         </div>
 

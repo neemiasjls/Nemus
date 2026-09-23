@@ -58,11 +58,12 @@
   --debit: #cc3d30;
   --debit-soft: rgba(204, 61, 48, 0.13);
 
-  /* Violeta: nao colide com o verde de entrada nem com o vermelho de saida,
-     entao pode marcar "onde voce esta" sem parecer alerta. */
-  --accent: #6d4aff;
-  --accent-soft: rgba(109, 74, 255, 0.14);
-  --accent-ink: #ffffff;
+  /* Ambar: pertence a mesma familia quente do resto da paleta e ainda assim
+     se separa do verde de entrada e do vermelho de saida. Violeta cumpria a
+     segunda condicao e falhava na primeira - ficava um corpo estranho. */
+  --accent: #b5741a;
+  --accent-soft: rgba(181, 116, 26, 0.13);
+  --accent-ink: #fffaf0;
 
   --shadow: 0 1px 2px rgba(45, 36, 18, 0.05), 0 6px 18px -10px rgba(45, 36, 18, 0.16);
 
@@ -70,7 +71,7 @@
   --slice-1: #e08b1e;
   --slice-2: #2f6fd0;
   --slice-3: #cc3d30;
-  --slice-4: #6d4aff;
+  --slice-4: #8a5cc4;
   --slice-5: #0d9c9c;
 
   color-scheme: light;
@@ -92,9 +93,9 @@
   --credit-soft: rgba(69, 211, 154, 0.16);
   --debit: #ff7a6b;
   --debit-soft: rgba(255, 122, 107, 0.16);
-  --accent: #9b7dff;
-  --accent-soft: rgba(155, 125, 255, 0.18);
-  --accent-ink: #14121f;
+  --accent: #e0a33f;
+  --accent-soft: rgba(224, 163, 63, 0.16);
+  --accent-ink: #1a1510;
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 26px -14px rgba(0, 0, 0, 0.6);
 
@@ -102,7 +103,7 @@
   --slice-1: #ffb340;
   --slice-2: #6ba6ff;
   --slice-3: #ff7a6b;
-  --slice-4: #9b7dff;
+  --slice-4: #b98ae0;
   --slice-5: #3fd0cf;
 
   color-scheme: dark;
@@ -125,9 +126,9 @@
     --credit-soft: rgba(69, 211, 154, 0.16);
     --debit: #ff7a6b;
     --debit-soft: rgba(255, 122, 107, 0.16);
-    --accent: #9b7dff;
-    --accent-soft: rgba(155, 125, 255, 0.18);
-    --accent-ink: #14121f;
+    --accent: #e0a33f;
+    --accent-soft: rgba(224, 163, 63, 0.16);
+    --accent-ink: #1a1510;
 
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 26px -14px rgba(0, 0, 0, 0.6);
 
@@ -135,7 +136,7 @@
     --slice-1: #ffb340;
     --slice-2: #6ba6ff;
     --slice-3: #ff7a6b;
-    --slice-4: #9b7dff;
+    --slice-4: #b98ae0;
     --slice-5: #3fd0cf;
 
     color-scheme: dark;
@@ -406,13 +407,14 @@ input::placeholder {
 }
 
 .nav a.active {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
   box-shadow: none;
 }
 
 .nav a.active .icon {
-  color: var(--accent-ink);
+  color: var(--accent);
 }
 
 /* Sem filete: a cor de fundo do item ja diz onde voce esta. */
@@ -553,7 +555,7 @@ input::placeholder {
 .content-inner {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -589,11 +591,13 @@ input::placeholder {
 }
 
 .page-title {
-  font-family: var(--serif);
-  font-size: clamp(1.65rem, 2.6vw, 2.1rem);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.012em;
+  font-size: clamp(1.7rem, 2.7vw, 2.15rem);
+
+  /* 700 em vez de 600: a serifa carregava a hierarquia sozinha; tirada ela,
+     quem separa titulo de texto e o peso. */
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.022em;
 }
 
 .page-subtitle {
@@ -610,7 +614,7 @@ input::placeholder {
 
 .panel {
   min-width: 0;
-  padding: 15px 16px;
+  padding: 17px 19px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -676,7 +680,7 @@ input::placeholder {
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 13px;
 }
 
 .metric {
@@ -706,11 +710,10 @@ input::placeholder {
 }
 
 .metric-value {
-  margin-top: 4px;
+  margin-top: 5px;
   overflow: hidden;
-  font-family: var(--serif);
-  font-size: clamp(1.1rem, 12cqi, 1.62rem);
-  font-weight: 600;
+  font-size: clamp(1.15rem, 12.5cqi, 1.7rem);
+  font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.01em;
   text-overflow: ellipsis;
@@ -1733,8 +1736,13 @@ thead th.amount {
 .envelope-bar.spent .bar-fill {
   fill: var(--accent);
 }
+/* Estouro nao precisa de barra cheia e saturada: quatro categorias
+   estouradas viram um tapete vermelho, e tapete nao aponta nada. O tom
+   mais claro ainda distingue do verde e deixa o valor em vermelho -
+   que e onde a informacao realmente esta - voltar a ser o que salta. */
 .envelope-bar.over .bar-fill {
   fill: var(--debit);
+  opacity: 0.45;
 }
 
 .activity {
@@ -2827,4 +2835,95 @@ thead th.amount {
   display: flex;
   gap: 6px;
   justify-content: flex-end;
+}
+
+/* --- Ação principal ------------------------------------------------------
+ *
+ * Fica acima do menu, não dentro dele. Lançar um gasto é o que se faz todo
+ * dia; as seções abaixo são para consultar. Tratar as duas coisas como
+ * itens iguais de uma lista foi o que fez a pergunta "onde eu lanço?" não
+ * ter resposta visível em tela nenhuma.
+ */
+.new-entry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 11px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.new-entry:hover {
+  filter: brightness(1.08);
+}
+
+.new-entry .icon {
+  color: var(--accent-ink);
+}
+
+/* Ajuda logo abaixo de Gasto/Entrada/Transferência. A dúvida de quem lança
+ * é antes de escolher — texto no rodapé do formulário chega tarde demais. */
+.kind-help {
+  margin: -4px 2px 14px;
+  color: var(--ink-3);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+/* --- Barra do topo no celular ----------------------------------------------
+ *
+ * Abaixo de 860px a barra lateral vira uma linha. Com o botao "Novo
+ * lancamento" nela, o menu ficava com largura ZERO - medido: nove itens
+ * posicionados de x=188 a x=546 numa tela de 406px. No telefone so a visao
+ * geral era alcancavel.
+ *
+ * A saida e quebrar em duas linhas: marca, acao principal e controles em
+ * cima; o menu sozinho embaixo, com a largura inteira. O menu deixa de
+ * disputar espaco com qualquer coisa.
+ *
+ * Fica aqui, e nao dentro do @media de 860px la em cima, porque as regras
+ * de .new-entry vem depois dele no arquivo e ganhariam pela ordem.
+ */
+@media (max-width: 860px) {
+  .sidebar {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .new-entry {
+    order: 1;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 9px 16px;
+  }
+  .sidebar-footer {
+    order: 2;
+    margin-left: auto;
+  }
+  .nav {
+    order: 3;
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+}
+
+/* No telefone o texto sai e fica o "+". Continua legivel para leitor de tela
+ * pelo mesmo recorte que o menu ja usa nos seus rotulos. */
+@media (max-width: 520px) {
+  .new-entry {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+  .new-entry span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
 }

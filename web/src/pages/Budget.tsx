@@ -287,12 +287,12 @@ function EnvelopeTable({
         </thead>
         {groups.map((group) =>
           group.children.length === 0 ? (
-            <tbody key={group.head.categoryId} className="categoria-single">
+            <tbody key={group.head.categoryId} className="envelope-single">
               <EnvelopeRow category={group.head} onAssign={onAssign} />
             </tbody>
           ) : (
             <tbody key={group.head.categoryId}>
-              <tr className="categoria-group">
+              <tr className="envelope-group">
                 <th scope="rowgroup">{group.head.name}</th>
                 <td className="amount">{formatAmount(group.totals.assigned)}</td>
                 <td className="amount activity">{group.totals.activity === 0 ? '—' : formatAmount(group.totals.activity)}</td>
@@ -336,13 +336,13 @@ function EnvelopeRow({
   const available = category.availableMinorUnits;
 
   return (
-    <tr className={`categoria-row${nested ? ' nested' : ''}`}>
+    <tr className={`envelope-row${nested ? ' nested' : ''}`}>
       <td>
-        <div className="categoria-name">
+        <div className="envelope-name">
           <span>{name}</span>
           {category.isArchived && <span className="tag">ARQUIVADA</span>}
         </div>
-        <svg className={`categoria-bar ${usage.state}`} viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+        <svg className={`envelope-bar ${usage.state}`} viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
           <rect className="bar-bg" width="100" height="4" rx="2" />
           {usage.fill > 0 && <rect className="bar-fill" width={usage.fill} height="4" rx="2" />}
         </svg>

@@ -62,6 +62,7 @@ export function App() {
 
 function Shell({ onSignOut }: { onSignOut: () => void }) {
   const [page, setPage] = useState<PageId>(pageFromHash);
+  const [visit, setVisit] = useState(0);
   const [data, setData] = useState<AppData>(EMPTY_DATA);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +71,9 @@ function Shell({ onSignOut }: { onSignOut: () => void }) {
     const onHashChange = () => {
       setPage(pageFromHash());
       window.scrollTo({ top: 0 });
+      // Remonta a pagina: e o que faz "?novo" e "?sem-categoria" valerem
+      // tambem quando ja se esta na tela de destino.
+      setVisit((n) => n + 1);
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -139,6 +143,19 @@ function Shell({ onSignOut }: { onSignOut: () => void }) {
           <span className="wordmark">Nemus</span>
         </a>
 
+        {/*
+          A ACAO PRINCIPAL FICA FORA DO MENU, e acima dele.
+
+          Lancar um gasto e o que se faz todo dia; ver relatorio e o que se
+          faz uma vez por mes. Enquanto "lancar" era so um botao dentro de
+          uma aba, a pergunta "onde eu lanco o que gastei?" nao tinha
+          resposta visivel em nenhuma tela.
+        */}
+        <a className="new-entry" href="#/lancamentos?novo">
+          <Icon name="plus" size={16} />
+          <span>Novo lançamento</span>
+        </a>
+
         <nav className="nav" aria-label="Seções">
           {PAGES.map((p) => (
             <a
@@ -194,7 +211,7 @@ function Shell({ onSignOut }: { onSignOut: () => void }) {
             <>
               {page === 'overview' && <Overview {...props} />}
               {page === 'budget' && <Budget {...props} />}
-              {page === 'transactions' && <Transactions {...props} />}
+              {page === 'transactions' && <Transactions key={visit} {...props} />}
               {page === 'recurring' && <Recurring {...props} />}
               {page === 'reports' && <Reports {...props} />}
               {page === 'accounts' && <Accounts {...props} />}
